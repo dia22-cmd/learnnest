@@ -1,0 +1,44 @@
+# ===== Secrets — NEVER commit =====
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# ===== Python =====
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# ===== Node / Frontend =====
+node_modules/
+dist/
+build/
+.next/
+
+# ===== Database =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== IDE / Editor =====
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs =====
+*.log
+logs/

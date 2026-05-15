@@ -16,8 +16,8 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserResponse(BaseModel):
-    """API output. NO PASSWORD."""
+class UserOut(BaseModel):
+    """User fields returned in API responses. NO PASSWORD."""
     id: uuid.UUID
     email: EmailStr
     full_name: str | None
@@ -29,6 +29,17 @@ class UserResponse(BaseModel):
 
 
 class Token(BaseModel):
-    """Login returns this"""
-    access_token: str
-    token_type: str = "bearer"
+    """JWT token payload"""
+    token: str
+
+
+class UserResponse(BaseModel):
+    """Wrapper for user endpoints"""
+    success: bool
+    data: UserOut
+
+
+class TokenResponse(BaseModel):
+    """Wrapper for login endpoint"""
+    success: bool
+    data: Token

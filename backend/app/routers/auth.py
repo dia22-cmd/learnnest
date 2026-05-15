@@ -15,6 +15,8 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         return {"success": True, "data": user}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
 
 @router.post("/login", response_model=TokenResponse)
 def login(data: UserCreate, db: Session = Depends(get_db)):

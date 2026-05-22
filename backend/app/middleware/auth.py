@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
-import os
+from app.config import settings
 
 bearer = HTTPBearer()
 
@@ -13,7 +13,7 @@ def get_current_user(
     db: Session = Depends(get_db)
 ) -> User:
     try:
-        payload = jwt.decode(creds.credentials, os.getenv("JWT_SECRET"), algorithms=["HS256"])
+        payload = jwt.decode(creds.credentials, settings.JWT_SECRET, algorithms=["HS256"])
         user_id = payload.get("sub")
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

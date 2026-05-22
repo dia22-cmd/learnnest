@@ -1,6 +1,9 @@
 import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { login } from "../services/auth";
+import { useNavigate, Link, Navigate } from "react-router-dom";
+import { z } from "zod";
+import { loginSchema } from "../schemas/auth";
+import type { FieldErrors } from "../types/auth";
+import { useAuth } from "../context/AuthContext";
 
 const PALETTE = {
   cream: "#F7EFE0",
@@ -15,36 +18,48 @@ const PALETTE = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (!authLoading && isAuthenticated) return <Navigate to="/welcome" replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    setServerError("");
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const flat = z.flattenError(result.error).fieldErrors;
+      setFieldErrors({ email: flat.email?.[0], password: flat.password?.[0] });
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
     try {
       await login(email, password);
       navigate("/welcome");
     } catch {
-      setError("Invalid email or password.");
+      setServerError("Invalid email or password.");
     } finally {
       setLoading(false);
     }
   }
 
-  const inputStyle = {
+  const inputStyle = (hasError: boolean) => ({
     width: "100%",
     padding: "12px 16px",
     borderRadius: 12,
-    border: `1.5px solid ${PALETTE.deepCream}`,
+    border: `1.5px solid ${hasError ? PALETTE.error : PALETTE.deepCream}`,
     background: PALETTE.soft,
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: 15,
     color: PALETTE.ink,
     outline: "none",
-  };
+  });
 
   return (
     <div style={{ minHeight: "100vh", background: PALETTE.cream, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -79,9 +94,9 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              required
-              style={inputStyle}
+              style={inputStyle(!!fieldErrors.email)}
             />
+            {fieldErrors.email && <p style={{ fontSize: 12, color: PALETTE.error, marginTop: 4, fontWeight: 600 }}>{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -91,13 +106,13 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Your password"
-              required
-              style={inputStyle}
+              style={inputStyle(!!fieldErrors.password)}
             />
+            {fieldErrors.password && <p style={{ fontSize: 12, color: PALETTE.error, marginTop: 4, fontWeight: 600 }}>{fieldErrors.password}</p>}
           </div>
 
-          {error && (
-            <p style={{ fontSize: 13, color: PALETTE.error, fontWeight: 600, margin: 0 }}>{error}</p>
+          {serverError && (
+            <p style={{ fontSize: 13, color: PALETTE.error, fontWeight: 600, margin: 0 }}>{serverError}</p>
           )}
 
           <button

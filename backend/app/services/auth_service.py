@@ -4,9 +4,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate
-import os
+from app.config import settings
 
-SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 
 def hash_password(plain: str) -> str:
@@ -20,13 +19,13 @@ def create_token(user_id: str) -> str:
         "sub": str(user_id),
         "exp": datetime.utcnow() + timedelta(minutes=30)
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=ALGORITHM)
 
 def register_user(data: UserCreate, db: Session) -> User:
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
         raise ValueError("Email already registered")
-    user = User(email=data.email, password_hash=hash_password(data.password))
+    user = User(email=data.email, password_hash=hash_password(data.password), full_name=data.full_name)
     db.add(user)
     db.commit()
     db.refresh(user)

@@ -1,8 +1,10 @@
 import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { register } from "../services/auth";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 import { z } from "zod";
+import { register } from "../services/auth";
 import { registerSchema } from "../schemas/auth";
+import { useAuth } from "../context/AuthContext";
+import type { FieldErrors } from "../types/auth";
 
 const PALETTE = {
   cream: "#F7EFE0",
@@ -15,16 +17,17 @@ const PALETTE = {
   error: "#C4541F",
 };
 
-type FieldErrors = { full_name?: string; email?: string; password?: string };
-
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (!authLoading && isAuthenticated) return <Navigate to="/welcome" replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,7 +47,12 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register({ email, password, full_name: fullName || undefined });
-      navigate("/login");
+      try {
+        await login(email, password);
+        navigate("/welcome");
+      } catch {
+        navigate("/login");
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       if (msg.toLowerCase().includes("already registered")) {

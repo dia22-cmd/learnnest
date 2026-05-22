@@ -36,7 +36,9 @@ learnnest/
 └── frontend/
     └── src/
         ├── pages/            # Landing, Register, Login, Welcome
-        ├── components/       # OwlMascot SVG
+        ├── components/       # OwlMascot, ProtectedRoute
+        ├── context/          # AuthContext (global auth state)
+        ├── types/            # Shared TypeScript types
         ├── services/         # API calls (auth.ts)
         └── schemas/          # Zod validation schemas
 ```
@@ -95,9 +97,15 @@ App runs at `http://localhost:5173`.
 
 ## Status
 
-**Phase 1 — Auth complete**
+**Phase 3 — Auth complete**
 - Landing page with owl mascot
 - User registration with Zod validation
 - Login with JWT authentication
+- Protected routes with AuthContext
 - Welcome page with user profile
 - PostgreSQL with Alembic migrations
+
+**Up next — Phase 4**
+- Material upload (PDF + Cloudinary)
+- AI question generation via Claude API
+- Child answer submission and evaluation

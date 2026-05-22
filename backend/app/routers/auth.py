@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user import UserCreate, UserResponse, TokenResponse
+from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.services.auth_service import register_user, login_user
 from app.middleware.auth import get_current_user
 from app.models.user import User
@@ -19,7 +19,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: UserCreate, db: Session = Depends(get_db)):
+def login(data: UserLogin, db: Session = Depends(get_db)):
     try:
         token = login_user(data.email, data.password, db)
         return {"success": True, "data": {"token": token}}

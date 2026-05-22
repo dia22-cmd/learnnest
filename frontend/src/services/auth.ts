@@ -1,18 +1,6 @@
+import type { RegisterPayload, UserOut, TokenData } from "../types/auth";
+
 const BASE = "/api/v1/auth";
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  full_name?: string;
-}
-
-export interface UserOut {
-  id: string;
-  email: string;
-  full_name: string | null;
-  is_active: boolean;
-  created_at: string;
-}
 
 export async function register(payload: RegisterPayload): Promise<UserOut> {
   const res = await fetch(`${BASE}/register`, {
@@ -21,7 +9,10 @@ export async function register(payload: RegisterPayload): Promise<UserOut> {
     body: JSON.stringify(payload),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.detail ?? "Registration failed");
+  if (!res.ok) {
+    const detail = Array.isArray(json.detail) ? json.detail[0]?.msg : json.detail;
+    throw new Error(detail ?? "Registration failed");
+  }
   return json.data as UserOut;
 }
 
@@ -32,8 +23,11 @@ export async function login(email: string, password: string): Promise<string> {
     body: JSON.stringify({ email, password }),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.detail ?? "Login failed");
-  const token = json.data?.token as string;
+  if (!res.ok) {
+    const detail = Array.isArray(json.detail) ? json.detail[0]?.msg : json.detail;
+    throw new Error(detail ?? "Login failed");
+  }
+  const token = (json.data as TokenData).token;
   localStorage.setItem("token", token);
   return token;
 }
@@ -44,7 +38,10 @@ export async function getMe(): Promise<UserOut> {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.detail ?? "Unauthorized");
+  if (!res.ok) {
+    if (res.status === 401) localStorage.removeItem("token");
+    throw new Error(json.detail ?? "Unauthorized");
+  }
   return json.data as UserOut;
 }
 

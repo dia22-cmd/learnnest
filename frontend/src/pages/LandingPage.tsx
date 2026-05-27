@@ -177,7 +177,7 @@ function HeroPanel() {
 const FEATURES = [
   {
     title: "AI Question Generator",
-    
+    sub: "Claude turns any material into tailored questions instantly.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke={PALETTE.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 3 L27 8 v9 c0 7 -5 11 -11 12 -6 -1 -11 -5 -11 -12 V8 z" />
@@ -187,7 +187,7 @@ const FEATURES = [
   },
   {
     title: "Smart Evaluation",
-    
+    sub: "AI reviews answers and gives friendly, helpful feedback.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke={PALETTE.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="9" width="16" height="13" rx="1" />
@@ -198,7 +198,7 @@ const FEATURES = [
   },
   {
     title: "Upload Materials",
-    
+    sub: "Drop in a PDF or paste text — we handle the rest.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke={PALETTE.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="11" width="26" height="18" rx="1" />

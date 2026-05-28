@@ -8,20 +8,22 @@ AI: Anthropic Claude API
 Storage: Cloudinary
 Deploy: Docker, Render, GitHub Actions
 
-## Architecture rules — ALWAYS follow
+## Architecture Rules — ALWAYS follow
 - Routers: receive request, call service, return response ONLY
 - Services: ALL business logic lives here
 - Models: DB shape only — no methods, no logic
+- Schemas: API shapes only — NEVER expose password_hash in responses
 - Frontend: components render, hooks manage state, services contain API calls
 
-## Code standards
+## Code Standards
 - UUID primary keys everywhere
-- Every table: created_at TIMESTAMP
+- Every table: created_at TIMESTAMP + deleted_at (soft delete, never hard delete)
 - Error shape: { success, data, message }
 - Hash passwords — never plain text
 - Filter DB queries by user_id always
+- Prefer maintainable code over clever hacks
 
-## Current phase
+## Current Phase
 Phase 3 — Auth complete. Deployed to Render. Phase 4 next.
 
 ## NOT in MVP
@@ -59,24 +61,37 @@ For EVERY feature, task, refactor, bugfix, or architectural change:
 
 Treat EVERY feature as a milestone.
 
-Each milestone must contain:
-- Goal
-- Scope
-- Files affected
-- Risks
-- Completion checklist
-- Test checklist
+### Milestone Template — USE THIS EVERY TIME
 
-Example:
+```
+Milestone N — [Feature Name]
 
-**Milestone 1 — Authentication Backend**
-- User schema
-- Password hashing
-- JWT generation
-- Login route
-- Register route
-- Validation
-- Tests
+Goal: [one sentence]
+Scope: [what's included AND what's not]
+
+Files affected:
+- backend/app/models/x.py
+- backend/app/services/x.py
+- backend/app/routers/x.py
+- frontend/src/pages/x.tsx
+
+Risks:
+- [risk 1]
+- [risk 2]
+
+Completion checklist:
+- [ ] [feature works end to end]
+- [ ] [edge case handled]
+
+Test checklist:
+- [ ] Happy path tested
+- [ ] Edge cases tested
+- [ ] Error cases tested
+- [ ] Existing tests still pass
+```
+
+### Example — Milestone 1: Authentication Backend
+Files: models/user.py, services/auth_service.py, routers/auth.py
 
 Completion checklist:
 - [ ] Register works
@@ -89,14 +104,14 @@ Completion checklist:
 
 ## Implementation Rules
 
-Before editing code:
+Before editing ANY code:
 - explain what will change
 - explain WHY it will change
 - explain possible side effects
 
 After implementation:
 - summarize all changes
-- list modified files
+- list every modified file
 - explain architectural decisions
 - mention technical debt if introduced
 
@@ -107,35 +122,65 @@ After implementation:
 After every completed feature:
 
 1. Remind user to:
-   - review code
-   - test manually
+   - review code manually
+   - test end to end
    - commit changes
    - open PR
-2. Generate:
-   - commit message
+
+2. Always generate:
+   - commit message (Conventional Commits format)
    - PR title
    - PR description
    - testing notes
 
-Never skip PR review reminders.
+Never skip PR review reminders. Ever.
+
+### Conventional Commits format
+```
+feat(scope): short description
+fix(scope): short description
+chore(scope): short description
+refactor(scope): short description
+test(scope): short description
+docs(scope): short description
+```
 
 ---
 
 ## Code Safety Rules
 
-Never:
+### NEVER:
 - silently change architecture
 - introduce dependencies without approval
 - perform destructive database actions without confirmation
 - remove code without explaining impact
-- expose secrets
-- bypass validation/security checks
+- expose secrets or API keys
+- bypass validation or security checks
+- hard delete database records (use deleted_at)
+- store plain text passwords
 
-Always:
+### ALWAYS:
 - prefer maintainable code over quick hacks
 - explain tradeoffs
 - mention scalability concerns
 - mention performance implications
+- use ORM — never raw SQL with user input
+- wrap AI calls in retry logic + JSON validation
+
+---
+
+## Self-Review Checklist — Run Before Every PR
+
+- [ ] Does route verify user owns the resource being accessed?
+- [ ] Is any user input used in raw SQL? (must go through ORM)
+- [ ] Are error messages generic — no internal details exposed?
+- [ ] Is AI API call wrapped in retry logic with JSON validation?
+- [ ] Does each function do exactly ONE thing?
+- [ ] Are ALL error cases handled — not just happy path?
+- [ ] Are there any secrets or hardcoded values in the diff?
+- [ ] Is there at least one automated test for this feature?
+- [ ] Do existing tests still pass?
+- [ ] Is CLAUDE.md current phase updated?
 
 ---
 
@@ -144,15 +189,14 @@ Always:
 Be direct and structured.
 
 Before implementation:
-- PLAN
-- WAIT
-- ASK FOR APPROVAL
+```
+PLAN → WAIT → ASK FOR APPROVAL
+```
 
 After implementation:
-- SUMMARIZE
-- REVIEW
-- TEST
-- COMMIT
-- PR
+```
+SUMMARIZE → REVIEW → TEST → COMMIT → PR
+```
 
 Never assume approval.
+Never proceed without explicit confirmation.

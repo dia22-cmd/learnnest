@@ -12,7 +12,7 @@ Parents upload study material (PDF or text). AI generates age-appropriate questi
 
 | Service | URL |
 |---------|-----|
-| Frontend | https://learnnest.onrender.com |
+| Frontend | https://learnnest-p1fz.onrender.com |
 | Backend API | https://learnnest-ripm.onrender.com |
 | API Docs | https://learnnest-ripm.onrender.com/docs |
 

@@ -4,7 +4,7 @@
 Backend: FastAPI, PostgreSQL, SQLAlchemy, Alembic
 Frontend: React + TypeScript, Vite, TailwindCSS
 Auth: JWT (30min), bcrypt via passlib
-AI: Anthropic Claude API
+AI: Google Gemini API
 Storage: Cloudinary
 Deploy: Docker, Render, GitHub Actions
 

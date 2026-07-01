@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     FRONTEND_ORIGIN: str = "http://localhost:5173"
 
     # External services (optional until Phase 4)
-    ANTHROPIC_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
     CLOUDINARY_URL: str = ""
 
     model_config = SettingsConfigDict(

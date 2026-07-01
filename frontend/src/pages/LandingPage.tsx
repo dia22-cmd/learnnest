@@ -177,7 +177,7 @@ function HeroPanel() {
 const FEATURES = [
   {
     title: "AI Question Generator",
-    sub: "Claude turns any material into tailored questions instantly.",
+    sub: "Gemini turns any material into tailored questions instantly.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke={PALETTE.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 3 L27 8 v9 c0 7 -5 11 -11 12 -6 -1 -11 -5 -11 -12 V8 z" />

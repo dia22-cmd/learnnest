@@ -238,7 +238,7 @@ Returns one material with full detail including extracted text.
 ## Question Endpoints _(planned)_
 
 ### `POST /api/v1/questions/generate/:material_id`
-Sends material text to Claude, saves generated questions.
+Sends material text to Gemini, saves generated questions.
 
 **Headers:** `Authorization: Bearer <token>`
 

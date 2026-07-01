@@ -25,7 +25,7 @@ Parents upload study material (PDF or text). AI generates age-appropriate questi
 | Frontend | React 18, TypeScript, Vite, Zod, React Router, Axios |
 | Backend | Python, FastAPI, PostgreSQL, SQLAlchemy, Alembic |
 | Auth | JWT (python-jose), bcrypt |
-| AI | Anthropic Claude API |
+| AI | Google Gemini API |
 | Storage | Cloudinary |
 | Deploy | Render, GitHub Actions |
 
@@ -79,7 +79,7 @@ JWT_SECRET=your-secret-key-here
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=30
 FRONTEND_ORIGIN=http://localhost:5173
-ANTHROPIC_API_KEY=sk-ant-...   # optional until Phase 4
+GEMINI_API_KEY=AIzaSy...       # optional until Phase 4
 CLOUDINARY_URL=cloudinary://...  # optional until Phase 4
 ```
 
@@ -122,5 +122,5 @@ App: `http://localhost:5173`
 
 **Phase 4 — coming next**
 - Material upload (PDF + Cloudinary)
-- AI question generation via Claude API
+- AI question generation via Gemini API
 - Child answer submission and evaluation

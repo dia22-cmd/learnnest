@@ -19,7 +19,7 @@ services:
         value: 30
       - key: FRONTEND_ORIGIN
         value: https://learnnest.onrender.com
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: CLOUDINARY_URL
         sync: false

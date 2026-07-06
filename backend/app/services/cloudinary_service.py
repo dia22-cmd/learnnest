@@ -3,9 +3,13 @@ import cloudinary
 import cloudinary.uploader
 from app.config import settings
 
+import os
+
 # Configure Cloudinary explicitly from settings
 if settings.CLOUDINARY_URL:
-    cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+    os.environ["CLOUDINARY_URL"] = settings.CLOUDINARY_URL
+    cloudinary.config()
+
 
 
 def upload_pdf_to_cloudinary(file_bytes: bytes, filename: str) -> str:

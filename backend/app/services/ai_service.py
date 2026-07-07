@@ -32,7 +32,7 @@ def generate_questions_from_text(raw_text: str, count: int = 5, retries: int = 3
     Returns a list of dicts: [{"type": "mcq"|"short_answer", "question": str, "options": list|None, "answer": str}]
     """
     configure_gemini()
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     prompt = f"""
 You are an expert school educator creating materials for children.
@@ -113,7 +113,7 @@ def evaluate_child_answer(
     Returns a dict: {"score": int, "feedback": str, "suggestions": str}
     """
     configure_gemini()
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     prompt = f"""
 You are a warm, encouraging AI tutor helping a child.

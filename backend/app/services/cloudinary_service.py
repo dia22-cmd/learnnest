@@ -2,13 +2,18 @@ import io
 import cloudinary
 import cloudinary.uploader
 from app.config import settings
+# Parse and configure Cloudinary manually to bypass python import ordering config limitations
+if settings.CLOUDINARY_URL and settings.CLOUDINARY_URL.startswith("cloudinary://"):
+    url = settings.CLOUDINARY_URL[len("cloudinary://"):]
+    credentials, cloud_name = url.split("@")
+    api_key, api_secret = credentials.split(":")
 
-import os
-
-# Configure Cloudinary explicitly from settings
-if settings.CLOUDINARY_URL:
-    os.environ["CLOUDINARY_URL"] = settings.CLOUDINARY_URL
-    cloudinary.config()
+    cloudinary.config(
+        cloud_name=cloud_name,
+        api_key=api_key,
+        api_secret=api_secret,
+        secure=True
+    )
 
 
 

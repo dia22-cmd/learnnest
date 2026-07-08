@@ -63,6 +63,14 @@ export default function WelcomePage() {
       setError("Please select a PDF file.");
       return;
     }
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Only PDF files are accepted.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size must be under 10MB.");
+      return;
+    }
 
     try {
       setUploading(true);
@@ -246,7 +254,20 @@ export default function WelcomePage() {
                   disabled={uploading}
                   onChange={(e) => {
                     const selected = e.target.files?.[0];
-                    if (selected) setFile(selected);
+                    if (selected) {
+                      if (selected.type !== "application/pdf" && !selected.name.toLowerCase().endsWith(".pdf")) {
+                        setError("Only PDF files are accepted.");
+                        setFile(null);
+                        return;
+                      }
+                      if (selected.size > 10 * 1024 * 1024) {
+                        setError("File size must be under 10MB.");
+                        setFile(null);
+                        return;
+                      }
+                      setError("");
+                      setFile(selected);
+                    }
                   }}
                   style={{ display: "none" }}
                   id="pdf-upload-input"

@@ -1,4 +1,4 @@
-# LearnNest — Claude Context
+# LearnNest — Developer Context
 
 ## Stack
 Backend: FastAPI, PostgreSQL, SQLAlchemy, Alembic
@@ -24,7 +24,7 @@ Deploy: Docker, Render, GitHub Actions
 - Prefer maintainable code over clever hacks
 
 ## Current Phase
-Phase 3 — Auth complete. Deployed to Render. Phase 4 next.
+Phase 4 — Materials, AI Generation & Child solving complete. Phase 5 next.
 
 ## NOT in MVP
 - Child login (replaced by share link)
@@ -180,7 +180,7 @@ docs(scope): short description
 - [ ] Are there any secrets or hardcoded values in the diff?
 - [ ] Is there at least one automated test for this feature?
 - [ ] Do existing tests still pass?
-- [ ] Is CLAUDE.md current phase updated?
+- [ ] Is DEVELOPER.md current phase updated?
 
 ---
 

@@ -104,23 +104,62 @@ App: `http://localhost:5173`
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
+| **Auth** | | | |
 | POST | `/api/v1/auth/register` | ❌ | Create account |
 | POST | `/api/v1/auth/login` | ❌ | Login, returns JWT |
 | GET | `/api/v1/auth/me` | ✅ | Get current user |
+| **Materials** | | | |
+| POST | `/api/v1/materials/upload` | ✅ | Upload PDF material to Cloudinary |
+| GET | `/api/v1/materials/` | ✅ | List all materials uploaded by parent |
+| **Questions** | | | |
+| POST | `/api/v1/questions/generate/{material_id}` | ✅ | Generate draft questions via Gemini 2.5 Flash |
+| GET | `/api/v1/questions/{material_id}` | 🔓 | List questions (all for parent, only selected for child) |
+| PATCH | `/api/v1/questions/{question_id}/select` | ✅ | Toggle selection of a question |
+| **Submissions** | | | |
+| POST | `/api/v1/submissions/` | ❌ | Submit child's answer for AI scoring & feedback |
+| GET | `/api/v1/submissions/{material_id}` | ✅ | List child submissions for a material |
+| **System** | | | |
 | GET | `/health` | ❌ | DB health check |
+
+## Testing
+
+The backend includes a comprehensive automated test suite utilizing `pytest` running against an isolated SQLite in-memory database. Gemini API and Cloudinary uploads are mocked to ensure tests run offline without consuming live quotas.
+
+### Running Backend Tests
+```bash
+cd backend
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
+python -m pytest
+```
+
+### Running Frontend Type-Checks
+```bash
+cd frontend
+npx tsc --noEmit
+```
+
+## CI/CD Pipeline
+
+A GitHub Actions pipeline (`.github/workflows/ci.yml`) is configured to run automatically on every push or pull request to the `main` branch:
+1. Installs Python packages and runs the backend test suite via `pytest`.
+2. Installs npm packages and validates type safety for the React client via `npx tsc --noEmit`.
 
 ## Status
 
 **Phase 3 — Auth + Deploy complete** ✅
-- Landing page with owl mascot
-- User registration with Zod validation
-- Login with JWT authentication (30 min expiry)
-- Protected routes with AuthContext
-- Welcome page with user profile
-- PostgreSQL + Alembic auto-migrations
-- Deployed to Render (backend + frontend + DB)
+- Landing page with animated owl mascot.
+- User registration and login with JWT authentication (30-minute expiry).
+- Protected dashboard routes with React Context.
+- PostgreSQL + Alembic database auto-migrations.
+- Deployed to Render.
 
-**Phase 4 — coming next**
-- Material upload (PDF + Cloudinary)
-- AI question generation via Gemini API
-- Child answer submission and evaluation
+**Phase 4 — Materials, AI Generation & Child Solving complete** ✅
+- Client-side validation: instantaneous file picker validation restricting non-PDF formats or files >10MB.
+- In-memory PDF text extraction using `pypdf`.
+- Storage backup uploading to Cloudinary.
+- Automated question generation (mixed MCQ and short answer) via `gemini-2.5-flash`.
+- Slide-based student solver interface with responsive SVG mascot animations.
+- Dynamic student answer evaluation and feedback scoring via Gemini.
+- Parent dashboard reports to track child answers and scores.
+

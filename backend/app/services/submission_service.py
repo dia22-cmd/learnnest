@@ -7,10 +7,7 @@ from app.services.ai_service import evaluate_child_answer
 
 
 def submit_answer(
-    db: Session,
-    question_id: uuid.UUID,
-    child_name: str,
-    answer_given: str
+    db: Session, question_id: uuid.UUID, child_name: str, answer_given: str
 ) -> Submission:
     """
     Saves a child's answer, calls Gemini to evaluate it, and updates the record.
@@ -29,7 +26,7 @@ def submit_answer(
         answer_given=answer_given,
         score=None,
         feedback=None,
-        suggestions=None
+        suggestions=None,
     )
     db.add(submission)
     db.commit()
@@ -41,7 +38,7 @@ def submit_answer(
             question_text=question.question,
             correct_answer=question.answer,
             child_name=child_name,
-            answer_given=answer_given
+            answer_given=answer_given,
         )
         submission.score = eval_result["score"]
         submission.feedback = eval_result["feedback"]
@@ -62,9 +59,7 @@ def submit_answer(
 
 
 def get_submissions_by_material(
-    db: Session,
-    material_id: uuid.UUID,
-    parent_id: uuid.UUID
+    db: Session, material_id: uuid.UUID, parent_id: uuid.UUID
 ) -> list[dict]:
     """
     Retrieves all student submissions for a material, including the question text.
@@ -77,24 +72,28 @@ def get_submissions_by_material(
         raise PermissionError("Access denied.")
 
     # Join Submission and Question to retrieve the question text alongside submission data
-    results = db.query(Submission, Question.question)\
-        .join(Question, Submission.question_id == Question.id)\
-        .filter(Question.material_id == material_id)\
-        .order_by(Submission.submitted_at.desc())\
+    results = (
+        db.query(Submission, Question.question)
+        .join(Question, Submission.question_id == Question.id)
+        .filter(Question.material_id == material_id)
+        .order_by(Submission.submitted_at.desc())
         .all()
+    )
 
     submissions_list = []
     for sub, q_text in results:
-        submissions_list.append({
-            "id": sub.id,
-            "question_id": sub.question_id,
-            "question": q_text,
-            "child_name": sub.child_name,
-            "answer_given": sub.answer_given,
-            "score": sub.score,
-            "feedback": sub.feedback,
-            "suggestions": sub.suggestions,
-            "submitted_at": sub.submitted_at
-        })
+        submissions_list.append(
+            {
+                "id": sub.id,
+                "question_id": sub.question_id,
+                "question": q_text,
+                "child_name": sub.child_name,
+                "answer_given": sub.answer_given,
+                "score": sub.score,
+                "feedback": sub.feedback,
+                "suggestions": sub.suggestions,
+                "submitted_at": sub.submitted_at,
+            }
+        )
 
     return submissions_list

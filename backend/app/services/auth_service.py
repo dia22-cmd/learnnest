@@ -8,28 +8,34 @@ from app.config import settings
 
 ALGORITHM = "HS256"
 
+
 def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain[:72].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
 
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain[:72].encode("utf-8"), hashed.encode("utf-8"))
 
+
 def create_token(user_id: str) -> str:
-    payload = {
-        "sub": str(user_id),
-        "exp": datetime.utcnow() + timedelta(minutes=30)
-    }
+    payload = {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(minutes=30)}
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=ALGORITHM)
+
 
 def register_user(data: UserCreate, db: Session) -> User:
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
         raise ValueError("Email already registered")
-    user = User(email=data.email, password_hash=hash_password(data.password), full_name=data.full_name)
+    user = User(
+        email=data.email,
+        password_hash=hash_password(data.password),
+        full_name=data.full_name,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
 
 def login_user(email: str, password: str, db: Session) -> str:
     user = db.query(User).filter(User.email == email).first()

@@ -162,4 +162,3 @@ A GitHub Actions pipeline (`.github/workflows/ci.yml`) is configured to run auto
 - Slide-based student solver interface with responsive SVG mascot animations.
 - Dynamic student answer evaluation and feedback scoring via Gemini.
 - Parent dashboard reports to track child answers and scores.
-

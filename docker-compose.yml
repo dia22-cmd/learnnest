@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: learnnest_db
+    environment:
+      - POSTGRES_USER=learnnest_user
+      - POSTGRES_PASSWORD=learnnest_v2_pass
+      - POSTGRES_DB=learnnest
+    ports:
+      - "5432:5432"
+    volumes:
+      # CRITICAL: Use a named volume. Do NOT convert this to a bind mount (e.g. ./data:/var/lib/postgresql/data)
+      # because Windows filesystem permission locks and host-guest syncing will corrupt Postgres databases.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U learnnest_user -d learnnest"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: learnnest_backend
+    volumes:
+      # Bind mount the backend directory for Uvicorn hot reloading
+      - ./backend:/app
+      # Mask local virtualenv folder to prevent local Windows binary builds from shadowing container packages
+      - /app/venv
+    ports:
+      - "8000:8000"
+    environment:
+      # Override host-specific database URL to point to the Postgres container within the docker network bridge
+      - DATABASE_URL=postgresql://learnnest_user:learnnest_v2_pass@db:5432/learnnest
+    env_file:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: learnnest_frontend
+    volumes:
+      # Bind mount the frontend directory for Vite HMR live reloading
+      - ./frontend:/app
+      # Mask local node_modules folder to prevent the host's node_modules (or lack of) from shadowing container packages
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      # Override the default proxy target to point to the backend container
+      - VITE_PROXY_TARGET=http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  # Named persistent volume for Postgres storage
+  postgres_data:

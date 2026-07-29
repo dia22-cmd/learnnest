@@ -1,7 +1,4 @@
-import io
-import uuid
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 def test_auth_flow(client):
@@ -11,7 +8,11 @@ def test_auth_flow(client):
     # 1. Register
     reg_resp = client.post(
         "/api/v1/auth/register",
-        json={"email": "parent_test@example.com", "password": "securePass123!", "full_name": "John Doe"}
+        json={
+            "email": "parent_test@example.com",
+            "password": "securePass123!",
+            "full_name": "John Doe",
+        },
     )
     assert reg_resp.status_code == 200
     assert reg_resp.json()["success"] is True
@@ -19,7 +20,7 @@ def test_auth_flow(client):
     # 2. Login
     login_resp = client.post(
         "/api/v1/auth/login",
-        json={"email": "parent_test@example.com", "password": "securePass123!"}
+        json={"email": "parent_test@example.com", "password": "securePass123!"},
     )
     assert login_resp.status_code == 200
     assert "token" in login_resp.json()["data"]
@@ -45,13 +46,16 @@ def test_material_upload_and_list(mock_extract, mock_upload, client, auth_header
         "/api/v1/materials/upload",
         headers=auth_headers,
         data=form_data,
-        files=file_data
+        files=file_data,
     )
 
     assert upload_resp.status_code == 201
     material_data = upload_resp.json()["data"]
     assert material_data["title"] == "Science Chapter 1"
-    assert material_data["file_url"] == "https://res.cloudinary.com/hssawakl/raw/upload/test.pdf"
+    assert (
+        material_data["file_url"]
+        == "https://res.cloudinary.com/hssawakl/raw/upload/test.pdf"
+    )
 
     # Verify material listing
     list_resp = client.get("/api/v1/materials/", headers=auth_headers)
@@ -63,7 +67,9 @@ def test_material_upload_and_list(mock_extract, mock_upload, client, auth_header
 @patch("app.services.question_service.generate_questions_from_text")
 @patch("app.services.material_service.upload_pdf_to_cloudinary")
 @patch("app.services.material_service.extract_text_from_pdf")
-def test_question_generation_and_selection(mock_extract, mock_upload, mock_generate_ai, client, auth_headers):
+def test_question_generation_and_selection(
+    mock_extract, mock_upload, mock_generate_ai, client, auth_headers
+):
     """
     Verify that generating questions from material, and toggling is_selected, works as expected.
     """
@@ -72,7 +78,12 @@ def test_question_generation_and_selection(mock_extract, mock_upload, mock_gener
     mock_upload.return_value = "https://res.cloudinary.com/test.pdf"
     file_data = {"file": ("test.pdf", b"pdf bytes", "application/pdf")}
     form_data = {"title": "Bio 1"}
-    mat_resp = client.post("/api/v1/materials/upload", headers=auth_headers, data=form_data, files=file_data)
+    mat_resp = client.post(
+        "/api/v1/materials/upload",
+        headers=auth_headers,
+        data=form_data,
+        files=file_data,
+    )
     material_id = mat_resp.json()["data"]["id"]
 
     # 2. Mock AI generation output
@@ -81,21 +92,21 @@ def test_question_generation_and_selection(mock_extract, mock_upload, mock_gener
             "type": "mcq",
             "question": "What pigment absorbs light?",
             "options": ["A. Red", "B. Chlorophyll", "C. Blue", "D. Yellow"],
-            "answer": "B. Chlorophyll"
+            "answer": "B. Chlorophyll",
         },
         {
             "type": "short_answer",
             "question": "Where does photosynthesis occur?",
             "options": None,
-            "answer": "Chloroplasts"
-        }
+            "answer": "Chloroplasts",
+        },
     ]
 
     # Generate questions
     gen_resp = client.post(
         f"/api/v1/questions/generate/{material_id}",
         headers=auth_headers,
-        json={"count": 2}
+        json={"count": 2},
     )
     assert gen_resp.status_code == 201
     questions = gen_resp.json()["data"]
@@ -109,7 +120,7 @@ def test_question_generation_and_selection(mock_extract, mock_upload, mock_gener
     select_resp = client.patch(
         f"/api/v1/questions/{question_id}/select",
         headers=auth_headers,
-        json={"is_selected": True}
+        json={"is_selected": True},
     )
     assert select_resp.status_code == 200
     assert select_resp.json()["data"]["is_selected"] is True
@@ -133,7 +144,9 @@ def test_question_generation_and_selection(mock_extract, mock_upload, mock_gener
 @patch("app.services.question_service.generate_questions_from_text")
 @patch("app.services.material_service.upload_pdf_to_cloudinary")
 @patch("app.services.material_service.extract_text_from_pdf")
-def test_student_submission_flow(mock_extract, mock_upload, mock_generate_ai, mock_eval, client, auth_headers):
+def test_student_submission_flow(
+    mock_extract, mock_upload, mock_generate_ai, mock_eval, client, auth_headers
+):
     """
     Verify the student submission and evaluation flow:
     - Save answer and fetch mock grading
@@ -144,26 +157,41 @@ def test_student_submission_flow(mock_extract, mock_upload, mock_generate_ai, mo
     mock_upload.return_value = "https://res.cloudinary.com/test.pdf"
     file_data = {"file": ("test.pdf", b"pdf bytes", "application/pdf")}
     form_data = {"title": "Bio 1"}
-    mat_resp = client.post("/api/v1/materials/upload", headers=auth_headers, data=form_data, files=file_data)
+    mat_resp = client.post(
+        "/api/v1/materials/upload",
+        headers=auth_headers,
+        data=form_data,
+        files=file_data,
+    )
     material_id = mat_resp.json()["data"]["id"]
 
     # 2. Create questions and select one
-    mock_generate_ai.return_value = [{
-        "type": "mcq",
-        "question": "What is green?",
-        "options": ["A. Soil", "B. Leaf", "C. Sun", "D. Sky"],
-        "answer": "B"
-    }]
-    gen_resp = client.post(f"/api/v1/questions/generate/{material_id}", headers=auth_headers, json={"count": 1})
+    mock_generate_ai.return_value = [
+        {
+            "type": "mcq",
+            "question": "What is green?",
+            "options": ["A. Soil", "B. Leaf", "C. Sun", "D. Sky"],
+            "answer": "B",
+        }
+    ]
+    gen_resp = client.post(
+        f"/api/v1/questions/generate/{material_id}",
+        headers=auth_headers,
+        json={"count": 1},
+    )
     question_id = gen_resp.json()["data"][0]["id"]
 
-    client.patch(f"/api/v1/questions/{question_id}/select", headers=auth_headers, json={"is_selected": True})
+    client.patch(
+        f"/api/v1/questions/{question_id}/select",
+        headers=auth_headers,
+        json={"is_selected": True},
+    )
 
     # 3. Child Submits Answer (Unauthenticated)
     mock_eval.return_value = {
         "score": 100,
         "feedback": "Correct! Leaves are green.",
-        "suggestions": "Review why chlorophyll makes them green."
+        "suggestions": "Review why chlorophyll makes them green.",
     }
 
     sub_resp = client.post(
@@ -171,8 +199,8 @@ def test_student_submission_flow(mock_extract, mock_upload, mock_generate_ai, mo
         json={
             "question_id": question_id,
             "child_name": "Arjun",
-            "answer_given": "B. Leaf"
-        }
+            "answer_given": "B. Leaf",
+        },
     )
     assert sub_resp.status_code == 201
     sub_data = sub_resp.json()["data"]

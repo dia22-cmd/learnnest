@@ -6,10 +6,7 @@ from app.services.ai_service import generate_questions_from_text
 
 
 def generate_questions(
-    db: Session,
-    material_id: uuid.UUID,
-    parent_id: uuid.UUID,
-    count: int = 5
+    db: Session, material_id: uuid.UUID, parent_id: uuid.UUID, count: int = 5
 ) -> list[Question]:
     """
     Retrieves the material, calls Gemini to generate questions, and saves them to the DB.
@@ -34,7 +31,7 @@ def generate_questions(
             question=q["question"],
             options=q["options"],
             answer=q["answer"],
-            is_selected=False  # Parent must select manually to assign
+            is_selected=False,  # Parent must select manually to assign
         )
         db.add(db_q)
         db_questions.append(db_q)
@@ -47,9 +44,7 @@ def generate_questions(
 
 
 def get_questions_by_material(
-    db: Session,
-    material_id: uuid.UUID,
-    parent_id: uuid.UUID | None = None
+    db: Session, material_id: uuid.UUID, parent_id: uuid.UUID | None = None
 ) -> list[Question]:
     """
     Retrieves questions.
@@ -63,20 +58,24 @@ def get_questions_by_material(
     if parent_id is not None:
         if material.parent_id != parent_id:
             raise PermissionError("Access denied.")
-        return db.query(Question).filter(Question.material_id == material_id).order_by(Question.created_at.asc()).all()
+        return (
+            db.query(Question)
+            .filter(Question.material_id == material_id)
+            .order_by(Question.created_at.asc())
+            .all()
+        )
     else:
         # Public solver access — only return assigned questions
-        return db.query(Question).filter(
-            Question.material_id == material_id,
-            Question.is_selected == True
-        ).order_by(Question.created_at.asc()).all()
+        return (
+            db.query(Question)
+            .filter(Question.material_id == material_id, Question.is_selected.is_(True))
+            .order_by(Question.created_at.asc())
+            .all()
+        )
 
 
 def select_question(
-    db: Session,
-    question_id: uuid.UUID,
-    parent_id: uuid.UUID,
-    is_selected: bool
+    db: Session, question_id: uuid.UUID, parent_id: uuid.UUID, is_selected: bool
 ) -> Question:
     """
     Toggles a question's is_selected state. Verifies parent ownership.

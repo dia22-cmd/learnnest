@@ -26,7 +26,9 @@ def clean_json_response(text: str) -> str:
     return text
 
 
-def generate_questions_from_text(raw_text: str, count: int = 5, retries: int = 3) -> list[dict]:
+def generate_questions_from_text(
+    raw_text: str, count: int = 5, retries: int = 3
+) -> list[dict]:
     """
     Sends material text to Gemini and asks to generate questions.
     Returns a list of dicts: [{"type": "mcq"|"short_answer", "question": str, "options": list|None, "answer": str}]
@@ -54,10 +56,9 @@ Study Material:
         try:
             # We request JSON response format explicitly
             response = model.generate_content(
-                prompt,
-                generation_config={"response_mime_type": "application/json"}
+                prompt, generation_config={"response_mime_type": "application/json"}
             )
-            
+
             content_text = response.text
             json_str = clean_json_response(content_text)
             questions = json.loads(json_str)
@@ -79,15 +80,19 @@ Study Material:
                 if q_type not in ["mcq", "short_answer"]:
                     continue
 
-                if q_type == "mcq" and (not isinstance(options, list) or len(options) < 2):
+                if q_type == "mcq" and (
+                    not isinstance(options, list) or len(options) < 2
+                ):
                     continue
 
-                valid_questions.append({
-                    "type": q_type,
-                    "question": question,
-                    "options": options if q_type == "mcq" else None,
-                    "answer": answer
-                })
+                valid_questions.append(
+                    {
+                        "type": q_type,
+                        "question": question,
+                        "options": options if q_type == "mcq" else None,
+                        "answer": answer,
+                    }
+                )
 
             if len(valid_questions) > 0:
                 return valid_questions
@@ -106,7 +111,7 @@ def evaluate_child_answer(
     correct_answer: str,
     child_name: str,
     answer_given: str,
-    retries: int = 3
+    retries: int = 3,
 ) -> dict:
     """
     Sends the question details and child's answer to Gemini for scoring and feedback.
@@ -126,16 +131,18 @@ Child's Answer: {answer_given}
 
 Respond strictly with a JSON object.
 The JSON object must contain exactly:
-- "score": integer (0 to 100) representing how correct and complete the answer is. Be relatively generous but fair. (e.g. for MCQs, 100 for correct, 0 for incorrect. For short answer, score based on understanding).
-- "feedback": a friendly, encouraging message in child-friendly language. Focus on what they did well first, then explain any gaps or errors simply.
+- "score": integer (0 to 100) representing how correct and complete the answer is.
+  Be relatively generous but fair. (e.g. for MCQs, 100 for correct, 0 for incorrect.
+  For short answer, score based on understanding).
+- "feedback": a friendly, encouraging message in child-friendly language.
+  Focus on what they did well first, then explain any gaps or errors simply.
 - "suggestions": a helpful, positive suggestion on how they can improve or what they could add next time.
 """
 
     for attempt in range(retries):
         try:
             response = model.generate_content(
-                prompt,
-                generation_config={"response_mime_type": "application/json"}
+                prompt, generation_config={"response_mime_type": "application/json"}
             )
 
             content_text = response.text
@@ -152,7 +159,7 @@ The JSON object must contain exactly:
             return {
                 "score": int(score),
                 "feedback": str(feedback),
-                "suggestions": str(suggestions)
+                "suggestions": str(suggestions),
             }
 
         except Exception as e:

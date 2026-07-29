@@ -2,19 +2,16 @@ import io
 import cloudinary
 import cloudinary.uploader
 from app.config import settings
+
 # Parse and configure Cloudinary manually to bypass python import ordering config limitations
 if settings.CLOUDINARY_URL and settings.CLOUDINARY_URL.startswith("cloudinary://"):
-    url = settings.CLOUDINARY_URL[len("cloudinary://"):]
+    url = settings.CLOUDINARY_URL[len("cloudinary://") :]
     credentials, cloud_name = url.split("@")
     api_key, api_secret = credentials.split(":")
 
     cloudinary.config(
-        cloud_name=cloud_name,
-        api_key=api_key,
-        api_secret=api_secret,
-        secure=True
+        cloud_name=cloud_name, api_key=api_key, api_secret=api_secret, secure=True
     )
-
 
 
 def upload_pdf_to_cloudinary(file_bytes: bytes, filename: str) -> str:
@@ -35,7 +32,7 @@ def upload_pdf_to_cloudinary(file_bytes: bytes, filename: str) -> str:
             file_io,
             resource_type="raw",
             folder="learnnest/materials",
-            public_id=filename
+            public_id=filename,
         )
         secure_url = upload_result.get("secure_url")
         if not secure_url:

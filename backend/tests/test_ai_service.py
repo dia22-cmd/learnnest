@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from app.services import ai_service
 
@@ -30,8 +29,10 @@ def test_generate_questions_success(mock_generate):
     mock_generate.return_value = mock_resp
 
     with patch("app.config.settings.GEMINI_API_KEY", "mock_key"):
-        questions = ai_service.generate_questions_from_text("Leaves are green and convert light.", count=2)
-        
+        questions = ai_service.generate_questions_from_text(
+            "Leaves are green and convert light.", count=2
+        )
+
         assert len(questions) == 2
         assert questions[0]["type"] == "mcq"
         assert questions[0]["question"] == "What is photosynthesis?"
@@ -62,7 +63,7 @@ def test_evaluate_child_answer_success(mock_generate):
             question_text="What is the green pigment?",
             correct_answer="Chlorophyll",
             child_name="Tina",
-            answer_given="chlorophyl"
+            answer_given="chlorophyl",
         )
 
         assert evaluation["score"] == 95

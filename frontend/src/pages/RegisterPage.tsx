@@ -53,10 +53,15 @@ export default function RegisterPage() {
       } catch {
         navigate("/login");
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg.toLowerCase().includes("already registered")) {
+    } catch (err: unknown) {
+      console.error("Registration failed:", err);
+      const axiosError = err as { response?: { data?: { detail?: string } } };
+      const detail = axiosError.response?.data?.detail;
+
+      if (typeof detail === "string" && detail.toLowerCase().includes("already registered")) {
         setServerError("That email is already registered. Try logging in.");
+      } else if (typeof detail === "string") {
+        setServerError(detail);
       } else {
         setServerError("Something went wrong. Please try again.");
       }

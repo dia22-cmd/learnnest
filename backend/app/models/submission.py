@@ -10,7 +10,11 @@ class Submission(Base):
     __tablename__ = "submissions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
+    question_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     child_name = Column(String, nullable=False)
     answer_given = Column(Text, nullable=False)
     score = Column(Integer, nullable=True)  # 0 to 100

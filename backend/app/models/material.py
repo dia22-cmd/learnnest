@@ -10,7 +10,9 @@ class Material(Base):
     __tablename__ = "materials"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    parent_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    parent_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String, nullable=False)
     file_url = Column(String, nullable=True)
     raw_text = Column(Text, nullable=False)
@@ -18,4 +20,6 @@ class Material(Base):
 
     # Relationships
     parent = relationship("User", backref="materials")
-    questions = relationship("Question", back_populates="material", cascade="all, delete-orphan")
+    questions = relationship(
+        "Question", back_populates="material", cascade="all, delete-orphan"
+    )

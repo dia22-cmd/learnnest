@@ -1,4 +1,3 @@
-import pytest
 from app.services import pdf_service
 
 

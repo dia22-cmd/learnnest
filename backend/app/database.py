@@ -8,7 +8,7 @@ from app.config import settings
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,  # checks connection is alive before using it
-    echo=False,           # set True to log every SQL query (debug only)
+    echo=False,  # set True to log every SQL query (debug only)
 )
 
 # 2. Session factory — creates new database sessions on demand

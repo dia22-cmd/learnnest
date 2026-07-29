@@ -8,6 +8,7 @@ from app.models.user import User
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
+
 @router.post("/register", response_model=UserResponse)
 def register(data: UserCreate, db: Session = Depends(get_db)):
     try:
@@ -16,7 +17,10 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
-        raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
+        raise HTTPException(
+            status_code=500, detail="Registration failed. Please try again."
+        )
+
 
 @router.post("/login", response_model=TokenResponse)
 def login(data: UserLogin, db: Session = Depends(get_db)):
@@ -25,6 +29,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         return {"success": True, "data": {"token": token}}
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+
 
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):

@@ -7,7 +7,7 @@ from jose import jwt
 from app.database import Base, get_db
 from app.main import app
 from app.config import settings
-from app.models import User, Material, Question, Submission
+from app.models import User, Material, Question, Submission  # noqa: F401
 from app.services.auth_service import hash_password
 
 from sqlalchemy.pool import StaticPool
@@ -15,9 +15,7 @@ from sqlalchemy.pool import StaticPool
 # Use in-memory SQLite database for fast, isolated test runs
 TEST_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool
+    TEST_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -43,6 +41,7 @@ def client(db):
     Provides a FastAPI TestClient configured to override the
     get_db dependency with the test database session.
     """
+
     def override_get_db():
         try:
             yield db
@@ -63,7 +62,7 @@ def test_user(db):
     user = User(
         email="testparent@example.com",
         password_hash=hash_password("securepassword123"),
-        full_name="Test Parent"
+        full_name="Test Parent",
     )
     db.add(user)
     db.commit()
@@ -76,9 +75,6 @@ def auth_headers(test_user):
     """
     Helper fixture providing valid JWT headers for the test user.
     """
-    payload = {
-        "sub": str(test_user.id),
-        "email": test_user.email
-    }
+    payload = {"sub": str(test_user.id), "email": test_user.email}
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
     return {"Authorization": f"Bearer {token}"}

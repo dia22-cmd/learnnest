@@ -57,3 +57,8 @@ jobs:
       run: |
         cd frontend
         npx tsc --noEmit
+
+    - name: Run ESLint Checks
+      run: |
+        cd frontend
+        npm run lint

@@ -24,12 +24,11 @@ Deploy: Docker, Render, GitHub Actions
 - Prefer maintainable code over clever hacks
 
 ## Current Phase
-Phase 4 — Materials, AI Generation & Child solving complete. Phase 5 next.
+Phase 6 — Docker Containerization & Parent Analytics Complete. Production environment ready.
 
 ## NOT in MVP
 - Child login (replaced by share link)
 - Adaptive difficulty
-- Progress tracking
 
 ---
 

@@ -26,7 +26,7 @@ export default function MaterialDetailPage() {
   const [material, setMaterial] = useState<MaterialDetail | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionDetail[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"questions" | "submissions">("questions");
 
@@ -45,6 +45,7 @@ export default function MaterialDetailPage() {
     if (materialId) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materialId]);
 
   async function loadData() {
@@ -53,13 +54,13 @@ export default function MaterialDetailPage() {
       setLoading(true);
       const mat = await getMaterialDetail(materialId);
       setMaterial(mat);
-      
+
       const qList = await getQuestions(materialId);
       setQuestions(qList);
 
       const subList = await getSubmissions(materialId);
       setSubmissions(subList);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to load material details", err);
     } finally {
       setLoading(false);
@@ -75,8 +76,9 @@ export default function MaterialDetailPage() {
       setGenError("");
       const newQs = await generateQuestions(materialId, genCount);
       setQuestions((prev) => [...prev, ...newQs]);
-    } catch (err: any) {
-      const errMsg = err.response?.data?.detail || "Question generation failed. Verify Gemini API Key.";
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { detail?: string } } };
+      const errMsg = axiosError.response?.data?.detail || "Question generation failed. Verify Gemini API Key.";
       setGenError(errMsg);
     } finally {
       setGenerating(false);
@@ -130,7 +132,7 @@ export default function MaterialDetailPage() {
   return (
     <div style={{ minHeight: "100vh", background: PALETTE.cream, color: PALETTE.ink, fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "40px 24px" }}>
       <div style={{ maxWidth: 880, margin: "0 auto" }}>
-        
+
         {/* Back navigation */}
         <button
           onClick={() => navigate("/welcome")}
@@ -208,7 +210,7 @@ export default function MaterialDetailPage() {
         {/* Tab content */}
         {activeTab === "questions" ? (
           <div>
-            
+
             {/* Share link block */}
             {selectedCount > 0 && (
               <div style={{ background: PALETTE.soft, border: `2.5px dashed ${PALETTE.accent}`, borderRadius: 16, padding: "20px 24px", marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
@@ -280,7 +282,7 @@ export default function MaterialDetailPage() {
             {/* Questions list */}
             {questions.length === 0 ? (
               <div style={{ textAlign: "center", padding: "48px 0", color: PALETTE.ink, opacity: 0.5 }}>
-                No questions generated yet. Choose a count and click "Generate" above!
+                {"No questions generated yet. Choose a count and click \"Generate\" above!"}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -298,7 +300,7 @@ export default function MaterialDetailPage() {
                         style={{ width: 18, height: 18, accentColor: PALETTE.accent, cursor: "pointer" }}
                       />
                     </div>
-                    
+
                     <div style={{ flexGrow: 1 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontSize: 11, fontWeight: 700, color: q.type === "mcq" ? PALETTE.green : PALETTE.accent, background: q.type === "mcq" ? "#E8F4F1" : "#FCEEE7", padding: "4px 8px", borderRadius: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
@@ -306,9 +308,9 @@ export default function MaterialDetailPage() {
                         </span>
                         <span style={{ fontSize: 11, opacity: 0.4 }}>Q{index + 1}</span>
                       </div>
-                      
+
                       <p style={{ fontSize: 15, fontWeight: 600, margin: "12px 0 10px" }}>{q.question}</p>
-                      
+
                       {q.type === "mcq" && q.options && (
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "8px 0" }}>
                           {q.options.map((opt) => (
@@ -352,7 +354,7 @@ export default function MaterialDetailPage() {
 
                   return (
                     <div key={sub.id} style={{ background: PALETTE.soft, border: `1.5px solid ${PALETTE.deepCream}`, borderRadius: 18, padding: 24 }}>
-                      
+
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                         <div>
                           <strong style={{ fontSize: 16 }}>{sub.child_name}</strong>
@@ -372,8 +374,8 @@ export default function MaterialDetailPage() {
                         </div>
 
                         <div style={{ background: "#FFFBF4", padding: 12, borderRadius: 10 }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>CHILD'S ANSWER</div>
-                          <div style={{ fontStyle: "italic" }}>"{sub.answer_given}"</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>{"CHILD'S ANSWER"}</div>
+                          <div style={{ fontStyle: "italic" }}>&quot;{sub.answer_given}&quot;</div>
                         </div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12, marginTop: 4 }}>
@@ -397,7 +399,7 @@ export default function MaterialDetailPage() {
         )}
 
       </div>
-      
+
       {/* Embedded CSS for spinner animation */}
       <style>{`
         @keyframes spin {

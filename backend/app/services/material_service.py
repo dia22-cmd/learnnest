@@ -6,11 +6,7 @@ from app.services.pdf_service import extract_text_from_pdf
 
 
 def create_material(
-    db: Session,
-    parent_id: uuid.UUID,
-    title: str,
-    file_bytes: bytes,
-    filename: str
+    db: Session, parent_id: uuid.UUID, title: str, file_bytes: bytes, filename: str
 ) -> Material:
     """
     Creates a new Material.
@@ -21,7 +17,9 @@ def create_material(
     # 1. Extract text first to ensure PDF is valid and has content before uploading
     raw_text = extract_text_from_pdf(file_bytes)
     if not raw_text:
-        raise ValueError("Could not extract any text from the uploaded PDF. Please ensure it is a text-based PDF.")
+        raise ValueError(
+            "Could not extract any text from the uploaded PDF. Please ensure it is a text-based PDF."
+        )
 
     # 2. Upload to Cloudinary
     file_url = None
@@ -35,10 +33,7 @@ def create_material(
 
     # 3. Save to database
     db_material = Material(
-        parent_id=parent_id,
-        title=title,
-        file_url=file_url,
-        raw_text=raw_text
+        parent_id=parent_id, title=title, file_url=file_url, raw_text=raw_text
     )
     db.add(db_material)
     db.commit()
@@ -50,10 +45,17 @@ def get_materials_by_parent(db: Session, parent_id: uuid.UUID) -> list[Material]
     """
     Retrieves all active materials owned by a specific parent.
     """
-    return db.query(Material).filter(Material.parent_id == parent_id).order_by(Material.created_at.desc()).all()
+    return (
+        db.query(Material)
+        .filter(Material.parent_id == parent_id)
+        .order_by(Material.created_at.desc())
+        .all()
+    )
 
 
-def get_material_by_id(db: Session, material_id: uuid.UUID, parent_id: uuid.UUID) -> Material | None:
+def get_material_by_id(
+    db: Session, material_id: uuid.UUID, parent_id: uuid.UUID
+) -> Material | None:
     """
     Retrieves a material by ID, verifying it belongs to the parent.
     """

@@ -41,6 +41,7 @@ export default function ChildSolvePage() {
     if (materialId) {
       loadQuestions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materialId]);
 
   async function loadQuestions() {
@@ -51,7 +52,7 @@ export default function ChildSolvePage() {
       // Fetch public questions (only returns is_selected=true)
       const data = await getQuestions(materialId);
       setQuestions(data);
-    } catch (err: any) {
+    } catch (err) {
       setError("We had trouble loading the questions. Please verify the link with your parents!");
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ export default function ChildSolvePage() {
       setLastSubmission(submission);
       setGradedSubmissions((prev) => [...prev, submission]);
       setStep("feedback");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Submission failed", err);
       alert("Uh oh! We had a small problem submitting your answer. Let's try again.");
     } finally {
@@ -121,7 +122,7 @@ export default function ChildSolvePage() {
 
   return (
     <div style={{ minHeight: "100vh", background: PALETTE.cream, color: PALETTE.ink, fontFamily: "'Plus Jakarta Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
-      
+
       {/* 1. Welcome Screen */}
       {step === "welcome" && (
         <div style={{ width: "100%", maxWidth: 480, background: PALETTE.panel, borderRadius: 28, padding: "48px 36px", boxShadow: `0 8px 0 ${PALETTE.deepCream}`, textAlign: "center" }}>
@@ -146,7 +147,7 @@ export default function ChildSolvePage() {
               disabled={!childName.trim()}
               style={{ width: "100%", background: PALETTE.accent, color: "#fff", border: "none", borderRadius: 14, padding: "14px 20px", fontSize: 16, fontWeight: 700, cursor: childName.trim() ? "pointer" : "not-allowed", boxShadow: `0 5px 0 ${PALETTE.accentDeep}`, opacity: childName.trim() ? 1 : 0.7 }}
             >
-              Let's Go!
+              {"Let's Go!"}
             </button>
           </form>
         </div>
@@ -155,7 +156,7 @@ export default function ChildSolvePage() {
       {/* 2. Solve Screen */}
       {step === "solve" && (
         <div style={{ width: "100%", maxWidth: 580, background: PALETTE.panel, borderRadius: 28, padding: "40px 36px", boxShadow: `0 8px 0 ${PALETTE.deepCream}` }}>
-          
+
           {/* Progress Indicator */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, fontSize: 13, fontWeight: 700, opacity: 0.6 }}>
             <span>STUDENT: {childName.toUpperCase()}</span>
@@ -172,7 +173,7 @@ export default function ChildSolvePage() {
           </h2>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            
+
             {currentQuestion.type === "mcq" && currentQuestion.options ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentQuestion.options.map((opt) => {
@@ -223,9 +224,9 @@ export default function ChildSolvePage() {
       {/* 3. Feedback / Grade Screen */}
       {step === "feedback" && lastSubmission && (
         <div style={{ width: "100%", maxWidth: 580, background: PALETTE.panel, borderRadius: 28, padding: "40px 36px", boxShadow: `0 8px 0 ${PALETTE.deepCream}`, textAlign: "center" }}>
-          
+
           <div style={{ fontSize: 56, marginBottom: 12 }}>🦉</div>
-          
+
           <div style={{ display: "inline-flex", background: lastSubmission.score && lastSubmission.score >= 80 ? "#E8F4F1" : "#FFFBF4", color: lastSubmission.score && lastSubmission.score >= 80 ? PALETTE.greenDeep : "#9E7A3B", borderRadius: 12, padding: "8px 16px", fontWeight: 700, fontSize: 16, marginBottom: 20 }}>
             {lastSubmission.score && lastSubmission.score >= 80 ? "⭐ Fantastic! " : "👍 Nice effort! "}
             {lastSubmission.score}/100
@@ -234,7 +235,7 @@ export default function ChildSolvePage() {
           <div style={{ background: PALETTE.soft, border: `1.5px solid ${PALETTE.deepCream}`, borderRadius: 16, padding: 24, textAlign: "left", marginBottom: 24 }}>
             <h4 style={{ color: PALETTE.greenDeep, fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>AI Feedback</h4>
             <p style={{ fontSize: 15, lineHeight: 1.5, margin: 0, color: PALETTE.ink }}>{lastSubmission.feedback}</p>
-            
+
             {lastSubmission.suggestions && (
               <>
                 <h4 style={{ color: PALETTE.accentDeep, fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 20, marginBottom: 8 }}>Tip for next time</h4>

@@ -5,8 +5,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true, // Allow external mapping through container ports
+    hmr: {
+      clientPort: 5173, // Map client HMR websockets back to host port 5173
+    },
     proxy: {
-      "/api": "http://localhost:8000",
+      "/api": {
+        target: process.env.VITE_PROXY_TARGET || "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
     },
   },
 });

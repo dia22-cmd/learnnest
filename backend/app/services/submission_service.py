@@ -1,3 +1,4 @@
+import json
 import uuid
 from sqlalchemy.orm import Session
 from app.models.question import Question
@@ -19,7 +20,43 @@ def submit_answer(
     if not question.is_selected:
         raise ValueError("This question has not been assigned by the parent.")
 
-    # 2. Create the base submission record
+    # 2. Validate input keys shape
+    if question.type == "fill_blank":
+        try:
+            correct_dict = json.loads(question.answer)
+            given_dict = json.loads(answer_given) if answer_given else {}
+            # Verify that all expected keys exist in the submission
+            if not isinstance(given_dict, dict) or not all(
+                k in given_dict for k in correct_dict.keys()
+            ):
+                raise ValueError(
+                    "Some blanks are missing answers. Please fill in all the blank boxes!"
+                )
+        except json.JSONDecodeError:
+            raise ValueError(
+                "Invalid format. Please make sure all blank boxes are filled!"
+            )
+
+    elif question.type == "match_following":
+        try:
+            left_items = question.options.get("left", []) if question.options else []
+            left_ids = {item["id"] for item in left_items}
+            given_dict = json.loads(answer_given) if answer_given else {}
+            if not isinstance(given_dict, dict):
+                raise ValueError("Invalid matching answer shape.")
+            # Verify that all keys in given_dict correspond to left_ids
+            if not all(k in left_ids for k in given_dict.keys()):
+                raise ValueError(
+                    "Oops! Some of the matched items are incorrect. Please reset the match column and try again!"
+                )
+        except Exception as e:
+            if isinstance(e, ValueError):
+                raise e
+            raise ValueError(
+                "Matching answer format is incorrect. Please refresh and try again!"
+            )
+
+    # 3. Create the base submission record
     submission = Submission(
         question_id=question_id,
         child_name=child_name,
@@ -32,13 +69,14 @@ def submit_answer(
     db.commit()
     db.refresh(submission)
 
-    # 3. Call AI evaluation
+    # 4. Call AI evaluation
     try:
         eval_result = evaluate_child_answer(
             question_text=question.question,
             correct_answer=question.answer,
             child_name=child_name,
             answer_given=answer_given,
+            question_type=question.type,
         )
         submission.score = eval_result["score"]
         submission.feedback = eval_result["feedback"]

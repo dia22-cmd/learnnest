@@ -23,11 +23,12 @@ Parents upload study material (PDF or text). AI generates age-appropriate questi
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, TypeScript, Vite, Zod, React Router, Axios |
-| Backend | Python, FastAPI, PostgreSQL, SQLAlchemy, Alembic |
+| Backend | Python 3.10, FastAPI, PostgreSQL, SQLAlchemy, Alembic |
 | Auth | JWT (python-jose), bcrypt |
-| AI | Google Gemini API |
+| AI | Google Gemini API (gemini-2.5-flash) |
+| DevOps & Containerization | Docker, Docker Compose, GitHub Actions |
 | Storage | Cloudinary |
-| Deploy | Render, GitHub Actions |
+| Deploy | Render |
 
 ## Project Structure
 
@@ -56,6 +57,25 @@ learnnest/
 ```
 
 ## Local Development
+
+You can run the entire LearnNest stack (Frontend, Backend, and PostgreSQL database) locally using either Docker Compose (recommended) or manual step-by-step setup.
+
+### 1. Running with Docker Compose (Recommended)
+
+1. Make sure you have Docker installed and running.
+2. Create `backend/.env` using the template below (adjusting credentials if necessary).
+3. Run the following command in the root directory:
+   ```bash
+   docker compose up --build
+   ```
+4. Access the applications:
+   - **Frontend client**: `http://localhost:5173`
+   - **Backend API**: `http://localhost:8000`
+   - **API Docs (Swagger UI)**: `http://localhost:8000/docs`
+
+---
+
+### 2. Manual Step-by-Step Setup
 
 ### Prerequisites
 - Python 3.10+
@@ -147,7 +167,7 @@ A GitHub Actions pipeline (`.github/workflows/ci.yml`) is configured to run auto
 
 ## Status
 
-**Phase 3 — Auth + Deploy complete** ✅
+**Phase 3 — Auth & Deploy complete** ✅
 - Landing page with animated owl mascot.
 - User registration and login with JWT authentication (30-minute expiry).
 - Protected dashboard routes with React Context.
@@ -162,3 +182,13 @@ A GitHub Actions pipeline (`.github/workflows/ci.yml`) is configured to run auto
 - Slide-based student solver interface with responsive SVG mascot animations.
 - Dynamic student answer evaluation and feedback scoring via Gemini.
 - Parent dashboard reports to track child answers and scores.
+
+**Phase 5 & 6 — Analytics, Docker Containerization & CI/CD complete** ✅
+- Parent analytics dashboard with correct answer rates and visual streak tracking.
+- Multi-container virtualization using Docker and Docker Compose (`db`, `backend`, `frontend`).
+- GitHub Actions automated integration workflows running tests and ESLint.
+
+**Phase 7 — Interactive Question Types complete** ✅
+- Support for True/False, Fill-in-the-Blank, and Match the Following.
+- Deterministic scoring calculations and key schema validation.
+- Complete isolated unit tests verification suite.

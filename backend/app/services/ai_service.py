@@ -163,8 +163,6 @@ Study Material:
 
         except Exception as e:
             print(f"Attempt {attempt + 1} failed generating questions: {e}")
-            if attempt == retries - 1 and len(valid_questions) == 0:
-                raise ValueError(f"AI question generation failed: {str(e)}")
 
     # Fallback policy on retry exhaustion: pad the rest with basic MCQ/Short Answer questions
     if len(valid_questions) < count:

@@ -69,3 +69,22 @@ def test_evaluate_child_answer_success(mock_generate):
         assert evaluation["score"] == 95
         assert "Perfect answer" in evaluation["feedback"]
         assert "chloroplasts" in evaluation["suggestions"]
+
+
+@patch("google.generativeai.GenerativeModel.generate_content")
+def test_generate_questions_fallback_padder(mock_generate):
+    """
+    Verify that when the LLM returns invalid data repeatedly (raising Exception),
+    the fallback padder triggers and populates the remaining slots with MCQ/Short Answer questions.
+    """
+    mock_generate.side_effect = Exception("Invalid response shape")
+
+    with patch("app.config.settings.GEMINI_API_KEY", "mock_key"):
+        questions = ai_service.generate_questions_from_text(
+            "Leaves are green and convert light.", count=3
+        )
+
+        assert len(questions) == 3
+        for q in questions:
+            assert q["type"] == "short_answer"
+            assert "Summarize" in q["question"]

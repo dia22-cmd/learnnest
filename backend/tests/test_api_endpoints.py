@@ -215,3 +215,63 @@ def test_student_submission_flow(
     assert submissions_list[0]["child_name"] == "Arjun"
     assert submissions_list[0]["score"] == 100
     assert submissions_list[0]["question"] == "What is green?"
+
+
+@patch("app.services.submission_service.evaluate_child_answer")
+@patch("app.services.question_service.generate_questions_from_text")
+@patch("app.services.material_service.upload_pdf_to_cloudinary")
+@patch("app.services.material_service.extract_text_from_pdf")
+def test_student_submission_validation_mismatch(
+    mock_extract, mock_upload, mock_generate_ai, mock_eval, client, auth_headers
+):
+    """
+    Verify that submitting an answer with missing/mismatched keys for fill_blank
+    or match_following raises a 400 Bad Request with a friendly error.
+    """
+    # 1. Create a Material
+    mock_extract.return_value = "Fractions."
+    mock_upload.return_value = "https://res.cloudinary.com/test.pdf"
+    file_data = {"file": ("test.pdf", b"pdf bytes", "application/pdf")}
+    form_data = {"title": "Math 1"}
+    mat_resp = client.post(
+        "/api/v1/materials/upload",
+        headers=auth_headers,
+        data=form_data,
+        files=file_data,
+    )
+    material_id = mat_resp.json()["data"]["id"]
+
+    # 2. Create fill_blank question and select it
+    mock_generate_ai.return_value = [
+        {
+            "type": "fill_blank",
+            "question": "The numerator of 3/4 is [blank_1].",
+            "options": None,
+            "answer": '{"blank_1": "3"}',
+        }
+    ]
+    gen_resp = client.post(
+        f"/api/v1/questions/generate/{material_id}",
+        headers=auth_headers,
+        json={"count": 1},
+    )
+    question_id = gen_resp.json()["data"][0]["id"]
+
+    client.patch(
+        f"/api/v1/questions/{question_id}/select",
+        headers=auth_headers,
+        json={"is_selected": True},
+    )
+
+    # 3. Submit empty answer (mismatched/missing keys)
+    sub_resp = client.post(
+        "/api/v1/submissions/",
+        json={
+            "question_id": question_id,
+            "child_name": "Arjun",
+            "answer_given": "{}",
+        },
+    )
+    # Assert it returns 400 Bad Request
+    assert sub_resp.status_code == 400
+    assert "Some blanks are missing answers" in sub_resp.json()["detail"]

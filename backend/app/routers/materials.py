@@ -21,6 +21,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 )
 async def upload_material(
     title: str = Form(...),
+    subject: str = Form("General"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -47,6 +48,7 @@ async def upload_material(
             title=title,
             file_bytes=file_bytes,
             filename=file.filename,
+            subject=subject,
         )
         return {"success": True, "data": material}
     except ValueError as e:

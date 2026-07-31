@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getQuestions } from "../services/questions";
 import { submitAnswer } from "../services/submissions";
 import type { Question, MatchFollowingOptions, MatchItem } from "../types/question";
@@ -19,14 +19,19 @@ const PALETTE = {
 
 export default function ChildSolvePage() {
   const { materialId } = useParams<{ materialId: string }>();
+  const [searchParams] = useSearchParams();
+  const childIdParam = searchParams.get("child_id") || null;
+  const childNameParam = searchParams.get("child_name") || "";
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Flow states
-  const [step, setStep] = useState<"welcome" | "solve" | "feedback" | "completed">("welcome");
-  const [childName, setChildName] = useState("");
+  const [step, setStep] = useState<"welcome" | "solve" | "feedback" | "completed">(
+    childNameParam ? "solve" : "welcome"
+  );
+  const [childName, setChildName] = useState(childNameParam);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Solving states
@@ -157,7 +162,7 @@ export default function ChildSolvePage() {
 
     try {
       setSubmitting(true);
-      const submission = await submitAnswer(currentQuestion.id, childName.trim(), answerText);
+      const submission = await submitAnswer(currentQuestion.id, childName.trim(), answerText, childIdParam);
       setLastSubmission(submission);
       setGradedSubmissions((prev) => [...prev, submission]);
       setStep("feedback");
@@ -260,7 +265,7 @@ export default function ChildSolvePage() {
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-            {currentQuestion.type === "mcq" && currentQuestion.options && (
+            {currentQuestion.type === "mcq" && Array.isArray(currentQuestion.options) && (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentQuestion.options.map((opt: string) => {
                   const isSelected = answer === opt;

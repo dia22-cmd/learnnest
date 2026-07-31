@@ -368,7 +368,7 @@ export default function MaterialDetailPage() {
 
                       <p style={{ fontSize: 15, fontWeight: 600, margin: "12px 0 10px" }}>{q.question}</p>
 
-                      {q.type === "mcq" && q.options && (
+                      {q.type === "mcq" && Array.isArray(q.options) && (
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "8px 0" }}>
                           {q.options.map((opt: string) => (
                             <div key={opt} style={{ background: "#FFFBF4", border: `1px solid ${PALETTE.deepCream}`, borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>

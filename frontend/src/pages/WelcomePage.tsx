@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { getMaterials, uploadMaterial } from "../services/materials";
 import type { Material } from "../types/material";
 import AnalyticsView from "./AnalyticsView";
+import ChildrenTab from "../components/ChildrenTab";
 
 const PALETTE = {
   cream: "#F7EFE0",
@@ -24,10 +25,11 @@ export default function WelcomePage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"materials" | "analytics">("materials");
+  const [activeTab, setActiveTab] = useState<"materials" | "children" | "analytics">("materials");
 
   // Form states
   const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState("General");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -77,8 +79,9 @@ export default function WelcomePage() {
     try {
       setUploading(true);
       setError("");
-      await uploadMaterial(title.trim(), file);
+      await uploadMaterial(title.trim(), file, subject);
       setTitle("");
+      setSubject("General");
       setFile(null);
       setModalOpen(false);
       await loadMaterials();
@@ -130,6 +133,12 @@ export default function WelcomePage() {
               style={{ background: "transparent", border: "none", fontSize: 16, fontWeight: 700, color: activeTab === "materials" ? PALETTE.accent : PALETTE.ink, borderBottom: activeTab === "materials" ? `3.5px solid ${PALETTE.accent}` : "3.5px solid transparent", padding: "4px 8px 10px", margin: "0 0 -13px", cursor: "pointer", outline: "none", transition: "color 0.2s, border-color 0.2s" }}
             >
               Study Materials
+            </button>
+            <button
+              onClick={() => setActiveTab("children")}
+              style={{ background: "transparent", border: "none", fontSize: 16, fontWeight: 700, color: activeTab === "children" ? PALETTE.accent : PALETTE.ink, borderBottom: activeTab === "children" ? `3.5px solid ${PALETTE.accent}` : "3.5px solid transparent", padding: "4px 8px 10px", margin: "0 0 -13px", cursor: "pointer", outline: "none", transition: "color 0.2s, border-color 0.2s" }}
+            >
+              Child Profiles
             </button>
             <button
               onClick={() => setActiveTab("analytics")}
@@ -198,7 +207,12 @@ export default function WelcomePage() {
                           📄
                         </div>
                         <div>
-                          <h4 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{m.title}</h4>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <h4 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{m.title}</h4>
+                            <span style={{ fontSize: 11, background: PALETTE.deepCream, padding: "2px 8px", borderRadius: 6, fontWeight: 600 }}>
+                              {m.subject}
+                            </span>
+                          </div>
                           <div style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>
                             Uploaded on {new Date(m.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
                           </div>
@@ -229,6 +243,8 @@ export default function WelcomePage() {
                 </div>
               )}
             </>
+          ) : activeTab === "children" ? (
+            <ChildrenTab materials={materials} />
           ) : (
             <AnalyticsView />
           )}
@@ -267,6 +283,25 @@ export default function WelcomePage() {
                   disabled={uploading}
                   style={{ width: "100%", background: PALETTE.soft, border: `1.5px solid ${PALETTE.deepCream}`, borderRadius: 12, padding: "12px 16px", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
                 />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, opacity: 0.8, display: "block", marginBottom: 8 }}>
+                  Subject Tag
+                </label>
+                <select
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={uploading}
+                  style={{ width: "100%", background: PALETTE.soft, border: `1.5px solid ${PALETTE.deepCream}`, borderRadius: 12, padding: "12px 16px", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box", color: PALETTE.ink }}
+                >
+                  <option value="General">General</option>
+                  <option value="Math">Math</option>
+                  <option value="Science">Science</option>
+                  <option value="Reading">Reading</option>
+                  <option value="History">History</option>
+                  <option value="Language">Language</option>
+                </select>
               </div>
 
               <div>

@@ -14,6 +14,7 @@ class Material(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     title = Column(String, nullable=False)
+    subject = Column(String(50), nullable=False, default="General")
     file_url = Column(String, nullable=True)
     raw_text = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

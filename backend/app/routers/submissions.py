@@ -24,6 +24,7 @@ def submit_answer(data: SubmissionCreate, db: Session = Depends(get_db)):
             question_id=data.question_id,
             child_name=data.child_name,
             answer_given=data.answer_given,
+            child_id=data.child_id,
         )
         return {"success": True, "data": submission}
     except ValueError as e:

@@ -27,7 +27,7 @@ def clean_json_response(text: str) -> str:
 
 
 def generate_questions_from_text(
-    raw_text: str, count: int = 5, retries: int = 3
+    raw_text: str, count: int = 5, retries: int = 3, difficulty: str = "medium"
 ) -> list[dict]:
     """
     Sends material text to Gemini and asks to generate questions.
@@ -39,6 +39,11 @@ def generate_questions_from_text(
     prompt = f"""
 You are an expert school educator creating materials for children.
 Generate exactly {count} educational questions from the study material below.
+
+IMPORTANT: Generate the questions suited for a "{difficulty}" academic difficulty.
+Adjust vocabulary, question complexity, and expected answer sophistication accordingly
+(for example, "easy" difficulty should be very simple and literal, "medium" is standard,
+"hard" is conceptual and advanced).
 
 Provide a balanced mix of these question types:
 1. "mcq" (Multiple Choice Question)

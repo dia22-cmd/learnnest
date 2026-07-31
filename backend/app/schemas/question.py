@@ -1,24 +1,24 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class QuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     material_id: uuid.UUID
-    type: str  # "mcq" or "short_answer"
+    type: str  # "mcq", "short_answer", "true_false", "fill_blank", "match_following"
     question: str
-    options: list[str] | None
+    options: dict | list[str] | None
     answer: str
     is_selected: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class QuestionGenerateInput(BaseModel):
     count: int = 5
+    child_id: uuid.UUID | None = None
 
 
 class QuestionSelectInput(BaseModel):

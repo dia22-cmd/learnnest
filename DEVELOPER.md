@@ -24,7 +24,7 @@ Deploy: Docker, Render, GitHub Actions
 - Prefer maintainable code over clever hacks
 
 ## Current Phase
-Phase 6 — Docker Containerization & Parent Analytics Complete. Production environment ready.
+Phase 7 — Interactive Question Types (T/F, Blank, Match) Complete. End-to-end grading, client solver widgets, and parent portal metrics are fully operational.
 
 ## NOT in MVP
 - Child login (replaced by share link)

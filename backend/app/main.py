@@ -13,6 +13,7 @@ from app.routers.materials import router as materials_router
 from app.routers.questions import router as questions_router
 from app.routers.submissions import router as submissions_router
 from app.routers.analytics import router as analytics_router
+from app.routers.children import router as children_router
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ app.include_router(materials_router)
 app.include_router(questions_router)
 app.include_router(submissions_router)
 app.include_router(analytics_router)
+app.include_router(children_router)
 
 
 @app.on_event("startup")

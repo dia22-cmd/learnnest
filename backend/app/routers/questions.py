@@ -28,7 +28,11 @@ def generate_questions(
 ):
     try:
         questions = question_service.generate_questions(
-            db=db, material_id=material_id, parent_id=current_user.id, count=data.count
+            db=db,
+            material_id=material_id,
+            parent_id=current_user.id,
+            count=data.count,
+            child_id=data.child_id,
         )
         return {"success": True, "data": questions}
     except ValueError as e:

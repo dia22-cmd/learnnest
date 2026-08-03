@@ -6,7 +6,12 @@ from app.services.pdf_service import extract_text_from_pdf
 
 
 def create_material(
-    db: Session, parent_id: uuid.UUID, title: str, file_bytes: bytes, filename: str
+    db: Session,
+    parent_id: uuid.UUID,
+    title: str,
+    file_bytes: bytes,
+    filename: str,
+    subject: str = "General",
 ) -> Material:
     """
     Creates a new Material.
@@ -33,7 +38,11 @@ def create_material(
 
     # 3. Save to database
     db_material = Material(
-        parent_id=parent_id, title=title, file_url=file_url, raw_text=raw_text
+        parent_id=parent_id,
+        title=title,
+        subject=subject,
+        file_url=file_url,
+        raw_text=raw_text,
     )
     db.add(db_material)
     db.commit()

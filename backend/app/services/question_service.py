@@ -3,10 +3,15 @@ from sqlalchemy.orm import Session
 from app.models.material import Material
 from app.models.question import Question
 from app.services.ai_service import generate_questions_from_text
+from app.models.child import Child
 
 
 def generate_questions(
-    db: Session, material_id: uuid.UUID, parent_id: uuid.UUID, count: int = 5
+    db: Session,
+    material_id: uuid.UUID,
+    parent_id: uuid.UUID,
+    count: int = 5,
+    child_id: uuid.UUID | None = None,
 ) -> list[Question]:
     """
     Retrieves the material, calls Gemini to generate questions, and saves them to the DB.
@@ -20,8 +25,24 @@ def generate_questions(
     if not material.raw_text:
         raise ValueError("Material has no extractable text.")
 
+    # Determine difficulty based on child profile if provided
+    difficulty = "medium"
+    if child_id is not None:
+        child = (
+            db.query(Child)
+            .filter(Child.id == child_id, Child.deleted_at.is_(None))
+            .first()
+        )
+        if not child:
+            raise ValueError("Child profile not found.")
+        if child.parent_id != parent_id:
+            raise PermissionError("Access denied to this child profile.")
+        difficulty = child.difficulty_level
+
     # Call AI service
-    ai_questions = generate_questions_from_text(material.raw_text, count=count)
+    ai_questions = generate_questions_from_text(
+        material.raw_text, count=count, difficulty=difficulty
+    )
 
     db_questions = []
     for q in ai_questions:

@@ -24,7 +24,7 @@ Deploy: Docker, Render, GitHub Actions
 - Prefer maintainable code over clever hacks
 
 ## Current Phase
-Phase 6 — Docker Containerization & Parent Analytics Complete. Production environment ready.
+Phase 8 — Advanced Core Features (Child Profiles, Assignments, and Symmetrical Adaptive Difficulty) Complete. End-to-end child progress tracking, parent boundary security, and quiz-level adaptive triggers are fully operational.
 
 ## NOT in MVP
 - Child login (replaced by share link)

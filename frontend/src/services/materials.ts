@@ -3,10 +3,11 @@ import type { Material, MaterialDetail } from "../types/material";
 
 const BASE = "/api/v1/materials";
 
-export async function uploadMaterial(title: string, file: File): Promise<Material> {
+export async function uploadMaterial(title: string, file: File, subject: string = "General"): Promise<Material> {
   const formData = new FormData();
   formData.append("title", title);
   formData.append("file", file);
+  formData.append("subject", subject);
 
   const res = await api.post(`${BASE}/upload`, formData, {
     headers: {

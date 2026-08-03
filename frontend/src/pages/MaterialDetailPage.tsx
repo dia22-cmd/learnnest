@@ -4,7 +4,7 @@ import { getMaterialDetail } from "../services/materials";
 import { generateQuestions, getQuestions, selectQuestion } from "../services/questions";
 import { getSubmissions } from "../services/submissions";
 import type { MaterialDetail } from "../types/material";
-import type { Question } from "../types/question";
+import type { Question, MatchFollowingOptions, MatchItem } from "../types/question";
 import type { SubmissionDetail } from "../types/submission";
 
 const PALETTE = {
@@ -37,6 +37,63 @@ export default function MaterialDetailPage() {
 
   // Share link states
   const [copied, setCopied] = useState(false);
+
+  const getQuestionTypeName = (type: string) => {
+    switch (type) {
+      case "mcq": return "MCQ";
+      case "short_answer": return "Short Answer";
+      case "true_false": return "True/False";
+      case "fill_blank": return "Fill in Blank";
+      case "match_following": return "Match Items";
+      default: return type;
+    }
+  };
+
+  const getQuestionTypeColor = (type: string) => {
+    switch (type) {
+      case "mcq": return { color: PALETTE.green, bg: "#E8F4F1" };
+      case "true_false": return { color: "#2E5BFF", bg: "#E8EDFF" };
+      case "fill_blank": return { color: "#C65A11", bg: "#FCEEE7" };
+      case "match_following": return { color: "#8E44AD", bg: "#F4ECF7" };
+      default: return { color: PALETTE.accent, bg: "#FCEEE7" };
+    }
+  };
+
+  const renderCorrectAnswer = (q: Question) => {
+    if (q.type === "fill_blank" || q.type === "match_following") {
+      try {
+        const parsed = JSON.parse(q.answer) as Record<string, string>;
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+            {Object.entries(parsed).map(([key, val]) => {
+              if (q.type === "match_following") {
+                const matchOpts = q.options as MatchFollowingOptions;
+                const lItem = (matchOpts?.left || []).find((l) => l.id === key);
+                const rItem = (matchOpts?.right || []).find((r) => r.id === val);
+                return (
+                  <div key={key} style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontWeight: 700 }}>{lItem?.text || key}</span>
+                    <span style={{ opacity: 0.4 }}>🔗</span>
+                    <span>{rItem?.text || val}</span>
+                  </div>
+                );
+              } else {
+                return (
+                  <div key={key} style={{ fontSize: 13 }}>
+                    <span style={{ opacity: 0.6 }}>{key.replace("_", " ")}: </span>
+                    <span style={{ fontWeight: 700 }}>{val}</span>
+                  </div>
+                );
+              }
+            })}
+          </div>
+        );
+      } catch {
+        return <span>{q.answer}</span>;
+      }
+    }
+    return <span>{q.answer}</span>;
+  };
 
   // Expand text state
   const [textExpanded, setTextExpanded] = useState(false);
@@ -303,17 +360,17 @@ export default function MaterialDetailPage() {
 
                     <div style={{ flexGrow: 1 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: q.type === "mcq" ? PALETTE.green : PALETTE.accent, background: q.type === "mcq" ? "#E8F4F1" : "#FCEEE7", padding: "4px 8px", borderRadius: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                          {q.type === "mcq" ? "MCQ" : "Short Answer"}
+                        <span style={{ fontSize: 11, fontWeight: 700, color: getQuestionTypeColor(q.type).color, background: getQuestionTypeColor(q.type).bg, padding: "4px 8px", borderRadius: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                          {getQuestionTypeName(q.type)}
                         </span>
                         <span style={{ fontSize: 11, opacity: 0.4 }}>Q{index + 1}</span>
                       </div>
 
                       <p style={{ fontSize: 15, fontWeight: 600, margin: "12px 0 10px" }}>{q.question}</p>
 
-                      {q.type === "mcq" && q.options && (
+                      {q.type === "mcq" && Array.isArray(q.options) && (
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "8px 0" }}>
-                          {q.options.map((opt) => (
+                          {q.options.map((opt: string) => (
                             <div key={opt} style={{ background: "#FFFBF4", border: `1px solid ${PALETTE.deepCream}`, borderRadius: 8, padding: "6px 12px", fontSize: 13 }}>
                               {opt}
                             </div>
@@ -321,9 +378,29 @@ export default function MaterialDetailPage() {
                         </div>
                       )}
 
-                      <div style={{ fontSize: 12, borderTop: `1px dashed ${PALETTE.deepCream}`, marginTop: 12, paddingTop: 8, display: "flex", gap: 6 }}>
+                      {q.type === "match_following" && q.options && (() => {
+                        const matchOpts = q.options as MatchFollowingOptions;
+                        return (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "8px 0", background: PALETTE.soft, padding: 12, borderRadius: 8 }}>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>CONCEPTS</div>
+                              {(matchOpts.left || []).map((item: MatchItem) => (
+                                <div key={item.id} style={{ fontSize: 12, margin: "4px 0" }}>• {item.text}</div>
+                              ))}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 4 }}>MATCHES</div>
+                              {(matchOpts.right || []).map((item: MatchItem) => (
+                                <div key={item.id} style={{ fontSize: 12, margin: "4px 0" }}>• {item.text}</div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <div style={{ fontSize: 12, borderTop: `1px dashed ${PALETTE.deepCream}`, marginTop: 12, paddingTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
                         <strong style={{ color: PALETTE.greenDeep }}>Correct Answer:</strong>
-                        <span style={{ opacity: 0.8 }}>{q.answer}</span>
+                        <div style={{ opacity: 0.8 }}>{renderCorrectAnswer(q)}</div>
                       </div>
                     </div>
                   </div>

@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import WelcomePage from "./pages/WelcomePage";
 import MaterialDetailPage from "./pages/MaterialDetailPage";
 import ChildSolvePage from "./pages/ChildSolvePage";
+import ChildSolverPage from "./pages/ChildSolverPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/welcome" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
           <Route path="/material/:materialId" element={<ProtectedRoute><MaterialDetailPage /></ProtectedRoute>} />
           <Route path="/solve/:materialId" element={<ChildSolvePage />} />
+          <Route path="/solve/child/:childId" element={<ChildSolverPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getQuestions } from "../services/questions";
 import { submitAnswer } from "../services/submissions";
-import type { Question } from "../types/question";
+import type { Question, MatchFollowingOptions, MatchItem } from "../types/question";
 import type { Submission } from "../types/submission";
 
 const PALETTE = {
@@ -19,14 +19,19 @@ const PALETTE = {
 
 export default function ChildSolvePage() {
   const { materialId } = useParams<{ materialId: string }>();
+  const [searchParams] = useSearchParams();
+  const childIdParam = searchParams.get("child_id") || null;
+  const childNameParam = searchParams.get("child_name") || "";
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Flow states
-  const [step, setStep] = useState<"welcome" | "solve" | "feedback" | "completed">("welcome");
-  const [childName, setChildName] = useState("");
+  const [step, setStep] = useState<"welcome" | "solve" | "feedback" | "completed">(
+    childNameParam ? "solve" : "welcome"
+  );
+  const [childName, setChildName] = useState(childNameParam);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Solving states
@@ -34,7 +39,10 @@ export default function ChildSolvePage() {
   const [submitting, setSubmitting] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<Submission | null>(null);
 
-  // Summary state
+  // New interactive states
+  const [blankAnswers, setBlankAnswers] = useState<Record<string, string>>({});
+  const [matchAnswers, setMatchAnswers] = useState<Record<string, string>>({});
+  const [activeLeftId, setActiveLeftId] = useState<string | null>(null);
   const [gradedSubmissions, setGradedSubmissions] = useState<Submission[]>([]);
 
   useEffect(() => {
@@ -43,6 +51,79 @@ export default function ChildSolvePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materialId]);
+
+  useEffect(() => {
+    setBlankAnswers({});
+    setMatchAnswers({});
+    setActiveLeftId(null);
+    setAnswer("");
+  }, [currentIndex]);
+
+  function isSubmitDisabled() {
+    if (submitting) return true;
+    const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) return true;
+
+    if (currentQuestion.type === "fill_blank") {
+      const matchCount = (currentQuestion.question.match(/\[blank_\d+\]/g) || []).length;
+      if (matchCount === 0) return true;
+      const filledCount = Object.keys(blankAnswers).filter(k => blankAnswers[k]?.trim()).length;
+      return filledCount < matchCount;
+    }
+    if (currentQuestion.type === "match_following") {
+      const matchOpts = currentQuestion.options as MatchFollowingOptions;
+      const leftCount = (matchOpts?.left || []).length;
+      if (leftCount === 0) return true;
+      const filledCount = Object.keys(matchAnswers).length;
+      return filledCount < leftCount;
+    }
+    return !answer.trim();
+  }
+
+  function renderFillInTheBlank(text: string) {
+    const parts = text.split(/(\[blank_\d+\])/g);
+    return (
+      <div style={{ fontSize: 18, lineHeight: 1.8, color: PALETTE.ink, margin: "24px 0", fontWeight: 500 }}>
+        {parts.map((part, i) => {
+          const match = part.match(/\[blank_(\d+)\]/);
+          if (match) {
+            const blankId = `blank_${match[1]}`;
+            return (
+              <input
+                key={i}
+                type="text"
+                value={blankAnswers[blankId] || ""}
+                onChange={(e) => {
+                  setBlankAnswers((prev) => ({
+                    ...prev,
+                    [blankId]: e.target.value,
+                  }));
+                }}
+                placeholder="..."
+                disabled={submitting}
+                style={{
+                  display: "inline-block",
+                  margin: "0 8px",
+                  padding: "4px 10px",
+                  border: "none",
+                  borderBottom: `2.5px solid ${PALETTE.accent}`,
+                  background: PALETTE.soft,
+                  borderRadius: "6px 6px 0 0",
+                  width: "140px",
+                  textAlign: "center",
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  color: PALETTE.ink,
+                  outline: "none",
+                }}
+              />
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </div>
+    );
+  }
 
   async function loadQuestions() {
     if (!materialId) return;
@@ -67,19 +148,29 @@ export default function ChildSolvePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!answer.trim() || submitting) return;
-
     const currentQuestion = questions[currentIndex];
+    if (!currentQuestion || submitting) return;
+
+    let answerText = answer.trim();
+    if (currentQuestion.type === "fill_blank") {
+      answerText = JSON.stringify(blankAnswers);
+    } else if (currentQuestion.type === "match_following") {
+      answerText = JSON.stringify(matchAnswers);
+    }
+
+    if (!answerText) return;
 
     try {
       setSubmitting(true);
-      const submission = await submitAnswer(currentQuestion.id, childName.trim(), answer.trim());
+      const submission = await submitAnswer(currentQuestion.id, childName.trim(), answerText, childIdParam);
       setLastSubmission(submission);
       setGradedSubmissions((prev) => [...prev, submission]);
       setStep("feedback");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Submission failed", err);
-      alert("Uh oh! We had a small problem submitting your answer. Let's try again.");
+      const errorWithResponse = err as { response?: { data?: { detail?: string } } };
+      const serverMsg = errorWithResponse.response?.data?.detail || "Uh oh! We had a small problem submitting your answer. Let's try again.";
+      alert(serverMsg);
     } finally {
       setSubmitting(false);
     }
@@ -172,11 +263,11 @@ export default function ChildSolvePage() {
             {currentQuestion.question}
           </h2>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-            {currentQuestion.type === "mcq" && currentQuestion.options ? (
+            {currentQuestion.type === "mcq" && Array.isArray(currentQuestion.options) && (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {currentQuestion.options.map((opt) => {
+                {currentQuestion.options.map((opt: string) => {
                   const isSelected = answer === opt;
                   return (
                     <button
@@ -191,7 +282,201 @@ export default function ChildSolvePage() {
                   );
                 })}
               </div>
-            ) : (
+            )}
+
+            {currentQuestion.type === "true_false" && (
+              <div style={{ display: "flex", gap: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => setAnswer("True")}
+                  disabled={submitting}
+                  style={{
+                    flex: 1,
+                    background: answer === "True" ? "#E8F4F1" : "#FFF1DC",
+                    border: answer === "True" ? `2.5px solid ${PALETTE.green}` : `1.5px solid ${PALETTE.deepCream}`,
+                    borderRadius: 16,
+                    padding: "24px 16px",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 8,
+                    color: PALETTE.ink,
+                  }}
+                >
+                  <span style={{ fontSize: 28, color: PALETTE.green }}>✓</span>
+                  True
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnswer("False")}
+                  disabled={submitting}
+                  style={{
+                    flex: 1,
+                    background: answer === "False" ? "#FCEEE7" : "#FFF1DC",
+                    border: answer === "False" ? `2.5px solid ${PALETTE.accent}` : `1.5px solid ${PALETTE.deepCream}`,
+                    borderRadius: 16,
+                    padding: "24px 16px",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 8,
+                    color: PALETTE.ink,
+                  }}
+                >
+                  <span style={{ fontSize: 28, color: PALETTE.accent }}>✗</span>
+                  False
+                </button>
+              </div>
+            )}
+
+            {currentQuestion.type === "fill_blank" && (
+              renderFillInTheBlank(currentQuestion.question)
+            )}
+
+            {currentQuestion.type === "match_following" && (() => {
+              const matchOpts = currentQuestion.options as MatchFollowingOptions;
+              const leftItems = matchOpts?.left || [];
+              const rightItems = matchOpts?.right || [];
+
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "flex", gap: 20 }}>
+                    {/* Left Column */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                      <h4 style={{ margin: 0, fontSize: 13, opacity: 0.6, fontWeight: 700, textTransform: "uppercase" }}>Concepts</h4>
+                      {leftItems.map((item: MatchItem) => {
+                        const isSelected = activeLeftId === item.id;
+                        const pairedRightId = matchAnswers[item.id];
+                        const pairedRightItem = rightItems.find((r: MatchItem) => r.id === pairedRightId);
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (!submitting) {
+                                setActiveLeftId(item.id);
+                              }
+                            }}
+                            style={{
+                              background: isSelected ? "#E8F4F1" : "#FFF1DC",
+                              border: isSelected ? `2.5px solid ${PALETTE.green}` : `1.5px solid ${PALETTE.deepCream}`,
+                              borderRadius: 12,
+                              padding: "16px",
+                              cursor: "pointer",
+                              fontSize: 15,
+                              fontWeight: 700,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              color: PALETTE.ink,
+                            }}
+                          >
+                            <span>{item.text}</span>
+                            {pairedRightItem && (
+                              <span style={{ fontSize: 11, background: PALETTE.green, color: "#fff", padding: "4px 8px", borderRadius: 8, fontWeight: 700 }}>
+                                Linked
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Right Column */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                      <h4 style={{ margin: 0, fontSize: 13, opacity: 0.6, fontWeight: 700, textTransform: "uppercase" }}>Matches</h4>
+                      {rightItems.map((item: MatchItem) => {
+                        const pairedLeftKey = Object.keys(matchAnswers).find(key => matchAnswers[key] === item.id);
+                        const pairedLeftItem = leftItems.find((l: MatchItem) => l.id === pairedLeftKey);
+                        const isSelectable = activeLeftId !== null;
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (!submitting && activeLeftId) {
+                                setMatchAnswers((prev) => {
+                                  const updated = { ...prev };
+                                  Object.keys(updated).forEach(key => {
+                                    if (updated[key] === item.id) {
+                                      delete updated[key];
+                                    }
+                                  });
+                                  updated[activeLeftId] = item.id;
+                                  return updated;
+                                });
+                                setActiveLeftId(null);
+                              }
+                            }}
+                            style={{
+                              background: pairedLeftItem ? "#E8F4F1" : "#FFF1DC",
+                              border: pairedLeftItem ? `2.5px solid ${PALETTE.green}` : isSelectable ? `1.5px dashed ${PALETTE.green}` : `1.5px solid ${PALETTE.deepCream}`,
+                              borderRadius: 12,
+                              padding: "16px",
+                              cursor: isSelectable ? "pointer" : "default",
+                              fontSize: 15,
+                              fontWeight: 600,
+                              opacity: isSelectable || pairedLeftItem ? 1 : 0.65,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              color: PALETTE.ink,
+                            }}
+                          >
+                            <span>{item.text}</span>
+                            {pairedLeftItem && (
+                              <span style={{ fontSize: 11, background: PALETTE.accent, color: "#fff", padding: "4px 8px", borderRadius: 8, fontWeight: 700 }}>
+                                {pairedLeftItem.text}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Connections List */}
+                  {Object.keys(matchAnswers).length > 0 && (
+                    <div style={{ background: PALETTE.soft, borderRadius: 12, padding: "16px 20px", marginTop: 8 }}>
+                      <h5 style={{ margin: "0 0 10px 0", fontSize: 13, opacity: 0.6, fontWeight: 700 }}>CURRENT CONNECTIONS:</h5>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        {Object.entries(matchAnswers).map(([lId, rId]) => {
+                          const lItem = leftItems.find((l: MatchItem) => l.id === lId);
+                          const rItem = rightItems.find((r: MatchItem) => r.id === rId);
+                          if (!lItem || !rItem) return null;
+                          return (
+                            <div key={lId} style={{ background: "#fff", border: `1px solid ${PALETTE.deepCream}`, padding: "6px 12px", borderRadius: 8, fontSize: 13, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+                              <span>{lItem.text} 🔗 {rItem.text}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMatchAnswers((prev) => {
+                                    const updated = { ...prev };
+                                    delete updated[lId];
+                                    return updated;
+                                  });
+                                }}
+                                style={{ background: "transparent", border: "none", color: PALETTE.accent, cursor: "pointer", fontWeight: 700, padding: 0 }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {currentQuestion.type === "short_answer" && (
               <textarea
                 placeholder="Type your answer here..."
                 value={answer}
@@ -204,8 +489,8 @@ export default function ChildSolvePage() {
 
             <button
               type="submit"
-              disabled={!answer.trim() || submitting}
-              style={{ width: "100%", background: PALETTE.green, color: "#fff", border: "none", borderRadius: 14, padding: "14px 20px", fontSize: 16, fontWeight: 700, cursor: answer.trim() && !submitting ? "pointer" : "not-allowed", boxShadow: `0 5px 0 ${PALETTE.greenDeep}`, opacity: answer.trim() && !submitting ? 1 : 0.7, marginTop: 8, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}
+              disabled={isSubmitDisabled()}
+              style={{ width: "100%", background: PALETTE.green, color: "#fff", border: "none", borderRadius: 14, padding: "14px 20px", fontSize: 16, fontWeight: 700, cursor: !isSubmitDisabled() ? "pointer" : "not-allowed", boxShadow: `0 5px 0 ${PALETTE.greenDeep}`, opacity: !isSubmitDisabled() ? 1 : 0.7, marginTop: 8, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}
             >
               {submitting ? (
                 <>

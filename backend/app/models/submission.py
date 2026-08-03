@@ -16,6 +16,12 @@ class Submission(Base):
         nullable=False,
     )
     child_name = Column(String, nullable=False)
+    child_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("children.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    difficulty_level = Column(String(20), nullable=True)
     answer_given = Column(Text, nullable=False)
     score = Column(Integer, nullable=True)  # 0 to 100
     feedback = Column(Text, nullable=True)
@@ -24,3 +30,4 @@ class Submission(Base):
 
     # Relationships
     question = relationship("Question", back_populates="submissions")
+    child = relationship("Child", back_populates="submissions")

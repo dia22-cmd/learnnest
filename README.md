@@ -192,3 +192,9 @@ A GitHub Actions pipeline (`.github/workflows/ci.yml`) is configured to run auto
 - Support for True/False, Fill-in-the-Blank, and Match the Following.
 - Deterministic scoring calculations and key schema validation.
 - Complete isolated unit tests verification suite.
+
+**Phase 8 — Advanced Core Features complete** ✅
+- Child profile creation, management, and private solver URLs.
+- Worksheet assignments checklists with togglable states.
+- Performance-based symmetrical adaptive difficulty escalations (using consecutive quiz histories).
+- Subject tagging for category performance reports.

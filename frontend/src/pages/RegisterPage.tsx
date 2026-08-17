@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
-import { z } from "zod";
 import { register } from "../services/auth";
 import { registerSchema } from "../schemas/auth";
 import { useAuth } from "../context/AuthContext";
@@ -35,7 +34,7 @@ export default function RegisterPage() {
 
     const result = registerSchema.safeParse({ full_name: fullName, email, password });
     if (!result.success) {
-      const flat = z.flattenError(result.error).fieldErrors;
+      const flat = result.error.flatten().fieldErrors;
       setFieldErrors({
         full_name: flat.full_name?.[0],
         email: flat.email?.[0],
@@ -55,13 +54,17 @@ export default function RegisterPage() {
       }
     } catch (err: unknown) {
       console.error("Registration failed:", err);
-      const axiosError = err as { response?: { data?: { detail?: string } } };
+      const axiosError = err as { response?: { data?: { detail?: string | Array<{ msg?: string }> } }; message?: string };
       const detail = axiosError.response?.data?.detail;
 
       if (typeof detail === "string" && detail.toLowerCase().includes("already registered")) {
         setServerError("That email is already registered. Try logging in.");
       } else if (typeof detail === "string") {
         setServerError(detail);
+      } else if (Array.isArray(detail) && detail[0]?.msg) {
+        setServerError(detail[0].msg);
+      } else if (axiosError.message) {
+        setServerError(axiosError.message);
       } else {
         setServerError("Something went wrong. Please try again.");
       }

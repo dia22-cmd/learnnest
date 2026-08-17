@@ -22,23 +22,21 @@ export default function ChildSolverPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (childId) {
-      loadData();
+    if (!childId) return;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const res = await getSolverAssignments(childId!);
+        setData(res);
+      } catch (err) {
+        console.error(err);
+        setError("We couldn't load your assignments. Please ask your parent for a new link!");
+      } finally {
+        setLoading(false);
+      }
     }
+    loadData();
   }, [childId]);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const res = await getSolverAssignments(childId!);
-      setData(res);
-    } catch (err) {
-      console.error(err);
-      setError("We couldn't load your assignments. Please ask your parent for a new link!");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -88,7 +86,7 @@ export default function ChildSolverPage() {
             <span style={{ fontSize: 36 }}>✨</span>
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: "12px 0 6px" }}>All caught up!</h3>
             <p style={{ fontSize: 14, opacity: 0.6, maxWidth: 320, margin: "0 auto" }}>
-              You don't have any worksheets assigned right now. Go play!
+              You don&apos;t have any worksheets assigned right now. Go play!
             </p>
           </div>
         ) : (

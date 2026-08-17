@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
-import { z } from "zod";
 import { loginSchema } from "../schemas/auth";
 import type { FieldErrors } from "../types/auth";
 import { useAuth } from "../context/AuthContext";
@@ -33,7 +32,7 @@ export default function LoginPage() {
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      const flat = z.flattenError(result.error).fieldErrors;
+      const flat = result.error.flatten().fieldErrors;
       setFieldErrors({ email: flat.email?.[0], password: flat.password?.[0] });
       return;
     }

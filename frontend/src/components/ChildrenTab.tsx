@@ -249,7 +249,7 @@ export default function ChildrenTab({ materials }: ChildrenTabProps) {
             {error && <div style={{ color: "#CE3B3B", background: "#FDECEC", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
-              <label style={{ fontSize: 13, fontWeight: 700 }}>Child's Name</label>
+              <label style={{ fontSize: 13, fontWeight: 700 }}>Child&apos;s Name</label>
               <input
                 type="text"
                 placeholder="e.g. Liam"

@@ -341,7 +341,7 @@ export default function WelcomePage() {
                     {file ? file.name : "Choose PDF file"}
                   </span>
                   <span style={{ fontSize: 11, opacity: 0.5, marginTop: 4 }}>
-                    {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "Text-based PDF, max 10MB"}
+                    {file ? (file.size < 100 * 1024 ? `${(file.size / 1024).toFixed(1)} KB` : `${(file.size / 1024 / 1024).toFixed(2)} MB`) : "Text-based PDF, max 10MB"}
                   </span>
                 </label>
               </div>

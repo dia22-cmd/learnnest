@@ -1,7 +1,7 @@
 import api from "./api";
 import type { Material, MaterialDetail } from "../types/material";
 
-const BASE = "/api/v1/materials";
+const BASE = "/api/v1/materials/";
 
 export async function uploadMaterial(title: string, file: File, subject: string = "General"): Promise<Material> {
   const formData = new FormData();
@@ -9,7 +9,7 @@ export async function uploadMaterial(title: string, file: File, subject: string 
   formData.append("file", file);
   formData.append("subject", subject);
 
-  const res = await api.post(`${BASE}/upload`, formData, {
+  const res = await api.post(`${BASE}upload`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -23,6 +23,6 @@ export async function getMaterials(): Promise<Material[]> {
 }
 
 export async function getMaterialDetail(id: string): Promise<MaterialDetail> {
-  const res = await api.get(`${BASE}/${id}`);
+  const res = await api.get(`${BASE}${id}`);
   return res.data.data as MaterialDetail;
 }

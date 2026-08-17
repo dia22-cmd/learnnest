@@ -6,6 +6,10 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true, // Allow external mapping through container ports
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
     hmr: {
       clientPort: 5173, // Map client HMR websockets back to host port 5173
     },

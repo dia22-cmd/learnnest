@@ -10,9 +10,7 @@ export default defineConfig({
       usePolling: true,
       interval: 100,
     },
-    hmr: {
-      clientPort: 5173, // Map client HMR websockets back to host port 5173
-    },
+    hmr: false,
     proxy: {
       "/api": {
         target: process.env.VITE_PROXY_TARGET || "http://127.0.0.1:8000",
